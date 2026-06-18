@@ -71,6 +71,7 @@ import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
+import androidx.compose.foundation.ExperimentalFoundationApi
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -122,7 +123,7 @@ private fun getContactFromUri(context: Context, uri: Uri): Pair<String, String> 
     return name to phone
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun AppDrawer(
     contactViewModel: ContactViewModel,
@@ -174,7 +175,7 @@ fun AppDrawer(
         pendingPickContact = forContact
         pendingPickIsNew = isNew
         if (contactsPermission.status.isGranted) {
-            contactPickerLauncher.launch()
+            contactPickerLauncher.launch(null)
         } else {
             contactsPermission.launchPermissionRequest()
         }

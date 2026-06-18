@@ -2,6 +2,7 @@ package app.skons.onsafe.data
 
 import android.content.Context
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 const val PREFS_NAME = "onsafe_prefs"
@@ -50,7 +51,7 @@ object ContactRepository {
                 contacts.addAll(defaultContacts)
             }
             AppData(myInfo = myInfo, contacts = contacts)
-        } catch (e: Exception) {
+        } catch (e: JSONException) {
             AppData()
         }
     }

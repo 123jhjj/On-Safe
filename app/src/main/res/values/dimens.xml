@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="widget_config_screen_padding">20dp</dimen>
+    <dimen name="widget_config_card_radius">12dp</dimen>
+    <dimen name="widget_config_section_gap">20dp</dimen>
+    <dimen name="widget_config_alpha_cell_height">76dp</dimen>
+    <dimen name="widget_config_alpha_grid_gap">8dp</dimen>
+    <dimen name="widget_config_preview_height">72dp</dimen>
+    <dimen name="widget_config_live_preview_height">88dp</dimen>
+</resources>

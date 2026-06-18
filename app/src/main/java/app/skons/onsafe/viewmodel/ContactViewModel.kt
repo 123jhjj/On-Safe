@@ -59,7 +59,7 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
                 }
                 ctx.sendBroadcast(intent)
             }
-        } catch (e: Exception) { /* ignore */ }
+        } catch (e: RuntimeException) { /* ignore */ }
     }
 
     fun updateMyInfo(info: MyInfo) {
