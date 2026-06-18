@@ -1,0 +1,2 @@
+-keep class app.skons.onsafe.widget.** { *; }
+-keep class app.skons.onsafe.data.** { *; }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">On-Safe</string>
+    <string name="widget_config_title">위젯 설정</string>
+    <string name="widget_config_title_119">119 위젯 설정</string>
+    <string name="widget_config_contact_section">연락처</string>
+    <string name="widget_config_alpha_section">배경 투명도</string>
+    <string name="widget_config_opacity_value">%1$d%%</string>
+    <string name="widget_config_sheet_title">표시할 연락처</string>
+    <string name="widget_config_unregistered">미등록</string>
+    <string name="widget_config_confirm">위젯 추가</string>
+    <string name="widget_config_cancel">취소</string>
+</resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splash_bg">#FAD02C</color>
+    <color name="app_bar_yellow">#FAD02C</color>
+    <!-- widget config -->
+    <color name="widget_config_bg">#F3F3F1</color>
+    <color name="widget_config_surface">#FFFFFF</color>
+    <color name="widget_config_card_stroke">#E4E4E0</color>
+    <color name="widget_config_section_bg">#FFF8E0</color>
+    <color name="widget_config_section_stroke">#F0D070</color>
+    <color name="widget_config_header_bg">#FAD02C</color>
+    <color name="widget_config_header_title">#1A1A1A</color>
+    <color name="widget_config_preview_wallpaper">#C5C5C0</color>
+    <color name="widget_config_text_primary">#141414</color>
+    <color name="widget_config_text_secondary">#6B6B66</color>
+    <color name="widget_config_text_tertiary">#9A9A94</color>
+    <color name="widget_config_accent">#FAD02C</color>
+    <color name="widget_config_accent_dark">#5C4A00</color>
+    <color name="widget_config_accent_soft">#FFF9E0</color>
+    <color name="widget_config_spinner_bg">#FFFFFCF2</color>
+    <color name="widget_config_spinner_popup_bg">#FFFFFAEA</color>
+    <color name="widget_config_spinner_line">#F1D978</color>
+    <color name="widget_config_spinner_pressed">#FFF5DA7A</color>
+    <color name="widget_config_spinner_pressed_line">#E4BF43</color>
+    <color name="widget_config_field_bg">#FAFAF8</color>
+    <color name="widget_config_field_stroke">#D8D8D4</color>
+    <color name="widget_config_field_stroke_focus">#C9A820</color>
+    <color name="widget_config_sheet_handle">#D0D0CC</color>
+    <color name="widget_config_sheet_bg">#FFFFFF</color>
+    <color name="widget_config_item_selected_bg">#FFF8E0</color>
+    <color name="widget_config_item_pressed">#F5F5F0</color>
+    <color name="widget_config_divider">#EEEEEA</color>
+    <color name="widget_config_preview_solid">#FFFFFF</color>
+    <color name="widget_config_preview_default">#D9FFFFFF</color>
+    <color name="widget_config_preview_soft">#A3FFFFFF</color>
+    <color name="widget_config_preview_clear">#66FFFFFF</color>
+    <color name="widget_config_preview_stroke">#E0E0DC</color>
+    <color name="widget_config_btn_primary_text">#141414</color>
+</resources>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="#FFFFFFFF">
+
+    <!-- 앱 이름 -->
+    <TextView
+        android:id="@+id/tv_app_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="On-Safe"
+        android:textSize="11dp"
+        android:textStyle="bold"
+        android:textColor="#FFBA7517"
+        android:gravity="start"
+        android:maxLines="1"
+        android:includeFontPadding="false"
+        android:letterSpacing="0.05" />
+
+    <!-- 연락처 영역 (가운데 정렬, 남은 공간 모두 사용) -->
+    <LinearLayout
+        android:id="@+id/contact1_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- 왼쪽: 역할 + 이름 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/contact1_role"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SKO 관리감독자"
+                android:textSize="13dp"
+                android:textStyle="bold"
+                android:textColor="#FF888780"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:includeFontPadding="false" />
+
+            <TextView
+                android:id="@+id/contact1_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="미등록"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:textColor="#FF1A1A1A"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:includeFontPadding="false" />
+
+        </LinearLayout>
+
+        <!-- 오른쪽: 전화 아이콘 -->
+        <ImageView
+            android:id="@+id/contact1_call_icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="14dp"
+            android:src="@drawable/ic_phone_in_talk_rounded"
+            android:tint="#FFBA7517"
+            android:contentDescription="전화"
+            android:scaleType="fitCenter" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 선택기 미리보기: 실제 위젯과 동일 -->
+<include layout="@layout/widget_contact" />

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OnSafe" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">#F5F5F0</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.OnSafe.WidgetConfig" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">@color/widget_config_bg</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@color/widget_config_header_bg</item>
+        <item name="android:navigationBarColor">@color/widget_config_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="colorPrimary">@color/widget_config_accent</item>
+        <item name="bottomSheetDialogTheme">@style/Theme.OnSafe.BottomSheet</item>
+    </style>
+
+    <style name="Theme.OnSafe.BottomSheet" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Theme.OnSafe.BottomSheetStyle</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:navigationBarColor">@color/widget_config_surface</item>
+    </style>
+
+    <style name="Theme.OnSafe.BottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+</resources>
