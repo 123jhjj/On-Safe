@@ -8,16 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Sms
@@ -112,8 +111,7 @@ fun AccidentScreen(
             Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .padding(horizontal = 14.dp, vertical = 10.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
             // 119 blink card
             Box(
@@ -139,32 +137,43 @@ fun AccidentScreen(
             }
             Spacer(Modifier.height(8.dp))
 
-            // Timeline
-            Column {
+            // Timeline — 5개 스텝이 남은 공간을 균등 분배
+            Column(Modifier.weight(1f)) {
                 steps.forEachIndexed { i, step ->
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        // Left: line + dot
+                        // Left: connecting line + numbered circle
                         Box(
                             Modifier
                                 .width(36.dp)
-                                .height(64.dp),
+                                .fillMaxHeight(),
                             contentAlignment = Alignment.Center,
                         ) {
-                            // Connecting line (not on first/last items)
-                            if (i > 0 || i < steps.size - 1) {
+                            // 위쪽 연결선 (첫 번째 제외)
+                            if (i > 0) {
                                 Box(
                                     Modifier
+                                        .align(Alignment.TopCenter)
                                         .width(2.dp)
-                                        .fillMaxSize()
+                                        .fillMaxHeight(0.5f)
                                         .background(lineC),
                                 )
                             }
-                            // Numbered circle (on top of line)
+                            // 아래쪽 연결선 (마지막 제외)
+                            if (i < steps.size - 1) {
+                                Box(
+                                    Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .width(2.dp)
+                                        .fillMaxHeight(0.5f)
+                                        .background(lineC),
+                                )
+                            }
+                            // Numbered circle
                             Box(
                                 Modifier
                                     .size(36.dp)
@@ -194,7 +203,6 @@ fun AccidentScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(8.dp))
         }
     }
 }

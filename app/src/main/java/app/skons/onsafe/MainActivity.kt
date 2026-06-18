@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,8 @@ class MainActivity : ComponentActivity() {
                 val locationViewModel: LocationViewModel = viewModel()
 
                 var drawerOpen by remember { mutableStateOf(false) }
+
+                BackHandler(enabled = drawerOpen) { drawerOpen = false }
 
                 Box(Modifier.fillMaxSize()) {
                     NavHost(navController = navController, startDestination = "splash") {

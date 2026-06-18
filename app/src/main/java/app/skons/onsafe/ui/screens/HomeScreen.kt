@@ -9,17 +9,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Phone
@@ -126,8 +126,7 @@ fun HomeScreen(
             Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .padding(horizontal = 14.dp, vertical = 10.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
             // 119 blinking card
             Box(
@@ -153,15 +152,27 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(12.dp))
 
-            // 2×2 grid
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    HomeBigCard(homeButtons[0], isDark, Modifier.weight(1f)) { navController.navigate(homeButtons[0].route) }
-                    HomeBigCard(homeButtons[1], isDark, Modifier.weight(1f)) { navController.navigate(homeButtons[1].route) }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    HomeBigCard(homeButtons[2], isDark, Modifier.weight(1f)) { navController.navigate(homeButtons[2].route) }
-                    HomeBigCard(homeButtons[3], isDark, Modifier.weight(1f)) { navController.navigate(homeButtons[3].route) }
+            // 2×2 grid — 남은 공간을 차지하며 세로 중앙 정렬
+            Box(
+                Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        HomeBigCard(homeButtons[0], isDark, Modifier.weight(1f).fillMaxHeight()) { navController.navigate(homeButtons[0].route) }
+                        HomeBigCard(homeButtons[1], isDark, Modifier.weight(1f).fillMaxHeight()) { navController.navigate(homeButtons[1].route) }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        HomeBigCard(homeButtons[2], isDark, Modifier.weight(1f).fillMaxHeight()) { navController.navigate(homeButtons[2].route) }
+                        HomeBigCard(homeButtons[3], isDark, Modifier.weight(1f).fillMaxHeight()) { navController.navigate(homeButtons[3].route) }
+                    }
                 }
             }
         }
@@ -196,7 +207,8 @@ private fun HomeBigCard(btn: BtnData, isDark: Boolean, modifier: Modifier = Modi
         Column(
             Modifier
                 .padding(20.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .fillMaxHeight(),
         ) {
             Box(
                 Modifier
@@ -210,7 +222,7 @@ private fun HomeBigCard(btn: BtnData, isDark: Boolean, modifier: Modifier = Modi
             Text(btn.label, fontSize = 20.sp, fontWeight = FontWeight.W800, color = Color.White, letterSpacing = (-0.3).sp)
             Spacer(Modifier.height(5.dp))
             Text(btn.sub, fontSize = 12.5.sp, color = Color.White.copy(alpha = 0.82f), maxLines = 2)
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.weight(1f))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 Icon(
                     Icons.Default.ArrowForwardIos, contentDescription = null,

@@ -1,8 +1,10 @@
 package app.skons.onsafe.ui.screens
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
@@ -149,8 +151,12 @@ fun ScriptScreen(
     var pendingIndex by remember { mutableStateOf(-1) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
-        if (ok && pendingIndex >= 0) photos[pendingIndex] = pendingCameraUri
+    // TakePicture 계약은 FLAG_GRANT_WRITE_URI_PERMISSION을 누락하므로
+    // StartActivityForResult로 직접 Intent 구성
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK && pendingIndex >= 0) {
+            photos[pendingIndex] = pendingCameraUri
+        }
         pendingIndex = -1
     }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -421,7 +427,11 @@ fun ScriptScreen(
                         val file = File.createTempFile("photo_", ".jpg", dir)
                         val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
                         pendingCameraUri = uri
-                        cameraLauncher.launch(uri)
+                        val camIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, uri)
+                            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        cameraLauncher.launch(camIntent)
                     } catch (_: IOException) { pendingIndex = -1 }
                 } else {
                     galleryLauncher.launch("image/*")
