@@ -431,7 +431,12 @@ fun ScriptScreen(
                             putExtra(MediaStore.EXTRA_OUTPUT, uri)
                             addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
-                        cameraLauncher.launch(camIntent)
+                        try {
+                            cameraLauncher.launch(camIntent)
+                        } catch (_: android.content.ActivityNotFoundException) {
+                            android.widget.Toast.makeText(ctx, "카메라 앱을 찾을 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
+                            pendingIndex = -1
+                        }
                     } catch (_: IOException) { pendingIndex = -1 }
                 } else {
                     galleryLauncher.launch("image/*")

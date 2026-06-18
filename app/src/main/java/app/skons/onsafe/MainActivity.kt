@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                                 contactViewModel = contactViewModel,
                                 locationViewModel = locationViewModel,
                                 isDark = isDark,
-                                onBack = { navController.popBackStack() },
+                                onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                                 onMenuClick = { drawerOpen = true },
                                 onNavigate = { route ->
                                     navController.navigate(route) {

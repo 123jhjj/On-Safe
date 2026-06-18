@@ -81,7 +81,7 @@ fun ContactsScreen(
                 title = "긴급 연락처",
                 isDark = isDark,
                 currentRoute = "contacts",
-                onBack = { navController.popBackStack() },
+                onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                 onMenuClick = onMenuClick,
                 onNavigate = { route ->
                     navController.navigate(route) {

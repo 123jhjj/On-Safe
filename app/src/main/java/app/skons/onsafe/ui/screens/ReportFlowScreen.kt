@@ -95,7 +95,7 @@ fun ReportFlowScreen(
                 title = "보고 체계",
                 isDark = isDark,
                 currentRoute = "report",
-                onBack = { navController.popBackStack() },
+                onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                 onMenuClick = onMenuClick,
                 onNavigate = { route ->
                     navController.navigate(route) {

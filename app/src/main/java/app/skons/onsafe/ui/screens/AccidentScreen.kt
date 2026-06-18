@@ -95,7 +95,7 @@ fun AccidentScreen(
                 title = "사고 발생",
                 isDark = isDark,
                 currentRoute = "accident",
-                onBack = { navController.popBackStack() },
+                onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                 onMenuClick = onMenuClick,
                 onNavigate = { route ->
                     navController.navigate(route) {
