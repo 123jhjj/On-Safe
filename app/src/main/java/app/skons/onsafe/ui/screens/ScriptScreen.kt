@@ -1,6 +1,7 @@
 package app.skons.onsafe.ui.screens
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -63,6 +64,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
@@ -79,7 +82,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.skons.onsafe.ui.components.ActionSheetOption
 import app.skons.onsafe.ui.components.BottomActionSheet
@@ -94,8 +96,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.File
-import java.io.IOException
 import java.util.Calendar
 
 private const val PREFS_SCRIPT = "onsafe_prefs"
@@ -122,7 +122,7 @@ fun ScriptScreen(
     val subC = if (isDark) AppColors.SubDark else AppColors.SubLight
     val borderC = if (isDark) AppColors.BorderDark else AppColors.BorderLight
     val cardBg = if (isDark) AppColors.CardDark else AppColors.CardLight
-    val underlineC = if (isDark) AppColors.RedDark else AppColors.Red
+    val underlineC = if (isDark) Color(0xFFFF6666) else AppColors.Red
     val blueC = if (isDark) AppColors.BlueDark else AppColors.Blue
     val chipBg = if (isDark) AppColors.BorderDark else Color(0xFFEEEEEE)
     val hintC = if (isDark) AppColors.HintDark else AppColors.HintLight
@@ -262,9 +262,16 @@ fun ScriptScreen(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                ) { focusManager.clearFocus() }
+                ) { focusManager.clearFocus() },
+        ) {
+        // 폼 카드 — 스크롤 가능, 남은 공간 채움
+        Column(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp)
+                .padding(top = 10.dp, bottom = 6.dp),
         ) {
             Column(
                 Modifier
@@ -311,7 +318,7 @@ fun ScriptScreen(
                 ScriptField("사고 내용", incident, "사고 내용", underlineC, hintC, textC, subC) { incident = it; saveScript() }
                 ScriptField("현재 상태", status, "현재 상태", underlineC, hintC, textC, subC) { status = it; saveScript() }
 
-                Divider(color = borderC, thickness = 1.dp, modifier = Modifier.padding(vertical = 9.dp))
+                Divider(color = borderC, thickness = 1.dp, modifier = Modifier.padding(vertical = 5.dp))
 
                 // GPS row
                 val (addrText, addrColor) = when {
@@ -326,7 +333,7 @@ fun ScriptScreen(
                     else -> locState.address to subC
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Switch(
                         checked = locState.locationEnabled,
                         onCheckedChange = { locationViewModel.setLocationEnabled(it) },
@@ -334,9 +341,21 @@ fun ScriptScreen(
                             checkedThumbColor = blueC,
                             checkedTrackColor = blueC.copy(alpha = 0.3f),
                         ),
-                        modifier = Modifier.height(20.dp),
+                        modifier = Modifier
+                            .layout { measurable, constraints ->
+                                val placeable = measurable.measure(constraints)
+                                val w = (placeable.width * 0.65f).toInt()
+                                val h = (placeable.height * 0.65f).toInt()
+                                layout(w, h) {
+                                    placeable.placeRelative(
+                                        -(placeable.width - w) / 2,
+                                        -(placeable.height - h) / 2,
+                                    )
+                                }
+                            }
+                            .scale(0.65f),
                     )
-                    Spacer(Modifier.width(6.dp))
+                    Spacer(Modifier.width(4.dp))
                     Text(
                         "위치", fontSize = 12.sp,
                         color = if (locState.locationEnabled) blueC else subC,
@@ -352,7 +371,7 @@ fun ScriptScreen(
                     )
                 }
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(6.dp))
 
                 Row(Modifier.fillMaxWidth()) {
                     PhotoSlot(
@@ -372,43 +391,47 @@ fun ScriptScreen(
                 Spacer(Modifier.height(12.dp))
                 Divider(color = borderC, thickness = 1.dp)
             }
+        } // 스크롤 Column 닫기
 
-            Spacer(Modifier.height(10.dp))
-
-            Row(Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = ::shareText,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDark) AppColors.BorderDark else Color(0xFFDDDDDD),
-                        contentColor = textC,
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp),
-                ) {
-                    Icon(Icons.Outlined.Article, null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("텍스트 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
-                }
-                Spacer(Modifier.width(10.dp))
-                val hasPhotos = photos.any { it != null }
-                Button(
-                    onClick = ::sharePhotos,
-                    enabled = hasPhotos,
-                    modifier = Modifier.weight(1f).alpha(if (hasPhotos) 1f else 0.35f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = blueC, contentColor = Color.White,
-                        disabledContainerColor = blueC, disabledContentColor = Color.White,
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp),
-                ) {
-                    Icon(Icons.Outlined.Photo, null, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("사진 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
-                }
+        // 공유 버튼 — 스크롤 밖, 항상 화면 하단에 고정
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+        ) {
+            Button(
+                onClick = ::shareText,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isDark) AppColors.BorderDark else Color(0xFFDDDDDD),
+                    contentColor = textC,
+                ),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(vertical = 16.dp),
+            ) {
+                Icon(Icons.Outlined.Article, null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("텍스트 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
+            }
+            Spacer(Modifier.width(10.dp))
+            val hasPhotos = photos.any { it != null }
+            Button(
+                onClick = ::sharePhotos,
+                enabled = hasPhotos,
+                modifier = Modifier.weight(1f).alpha(if (hasPhotos) 1f else 0.35f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = blueC, contentColor = Color.White,
+                    disabledContainerColor = blueC, disabledContentColor = Color.White,
+                ),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(vertical = 16.dp),
+            ) {
+                Icon(Icons.Outlined.Photo, null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("사진 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
             }
         }
+        } // 외부 Column 닫기
     }
 
     if (showPhotoSheet) {
@@ -423,21 +446,27 @@ fun ScriptScreen(
                 showPhotoSheet = false
                 if (choice == 0) {
                     try {
-                        val dir = File(ctx.cacheDir, "pictures").also { it.mkdirs() }
-                        val file = File.createTempFile("photo_", ".jpg", dir)
-                        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-                        pendingCameraUri = uri
-                        val camIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                            putExtra(MediaStore.EXTRA_OUTPUT, uri)
-                            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        val cv = ContentValues().apply {
+                            put(MediaStore.Images.Media.DISPLAY_NAME, "onsafe_${System.currentTimeMillis()}.jpg")
+                            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
                         }
-                        try {
+                        val mediaUri = ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv)
+                        if (mediaUri != null) {
+                            pendingCameraUri = mediaUri
+                            val camIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                                putExtra(MediaStore.EXTRA_OUTPUT, mediaUri)
+                            }
                             cameraLauncher.launch(camIntent)
-                        } catch (_: android.content.ActivityNotFoundException) {
-                            android.widget.Toast.makeText(ctx, "카메라 앱을 찾을 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
+                        } else {
                             pendingIndex = -1
                         }
-                    } catch (_: IOException) { pendingIndex = -1 }
+                    } catch (_: android.content.ActivityNotFoundException) {
+                        android.widget.Toast.makeText(ctx, "카메라 앱을 찾을 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
+                        pendingIndex = -1
+                    } catch (_: SecurityException) {
+                        android.widget.Toast.makeText(ctx, "카메라 권한이 필요합니다", android.widget.Toast.LENGTH_SHORT).show()
+                        pendingIndex = -1
+                    }
                 } else {
                     galleryLauncher.launch("image/*")
                 }
@@ -460,9 +489,10 @@ private fun ScriptField(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 5.dp),
+        modifier = Modifier.padding(vertical = 8.dp),
     ) {
-        Text(label, fontSize = 12.sp, fontWeight = FontWeight.W500, color = subC, modifier = Modifier.width(72.dp))
+        Text(label, fontSize = 14.sp, fontWeight = FontWeight.W600, color = subC, modifier = Modifier.width(60.dp))
+        Spacer(Modifier.width(12.dp))
         Box(
             Modifier
                 .weight(1f)
@@ -483,7 +513,7 @@ private fun ScriptField(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
-                    if (value.isEmpty()) Text(hint, color = hintC, fontSize = 15.sp)
+                    if (value.isEmpty()) Text(hint, color = hintC, fontSize = 15.sp, fontWeight = FontWeight.W600)
                     innerTextField()
                 },
             )
@@ -511,7 +541,7 @@ private fun PhotoSlot(
                 color = dashedColor
                 style = PaintingStyle.Stroke
                 strokeWidth = 1.5.dp.toPx()
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f)
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(5f, 4f), 0f)
             }
             val path = Path().apply {
                 addRoundRect(RoundRect(
@@ -544,7 +574,7 @@ private fun PhotoSlot(
             ) {
                 Icon(Icons.Outlined.CameraAlt, null, tint = subC, modifier = Modifier.size(28.dp))
                 Spacer(Modifier.height(4.dp))
-                Text("사진", fontSize = 12.sp, color = subC, fontWeight = FontWeight.W500)
+                Text("사진", fontSize = 12.sp, color = subC)
             }
         }
     }

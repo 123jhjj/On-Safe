@@ -1,6 +1,5 @@
 package app.skons.onsafe.ui.components
 
-import android.Manifest
 import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
@@ -15,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -59,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -71,10 +72,8 @@ import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -83,14 +82,6 @@ private val BadgeBgDark = Color(0xFF2A2A3D)
 private val BadgeTxLight = Color(0xFF7A5C00)
 private val BadgeTxDark = Color(0xFFFFD966)
 
-private fun fmtPhone(raw: String): String {
-    val d = raw.replace(Regex("\\D"), "")
-    return when (d.length) {
-        11 -> "${d.substring(0, 3)}-${d.substring(3, 7)}-${d.substring(7)}"
-        10 -> "${d.substring(0, 3)}-${d.substring(3, 6)}-${d.substring(6)}"
-        else -> raw
-    }
-}
 
 private fun getContactFromUri(context: Context, uri: Uri): Pair<String, String> {
     var name = ""
@@ -123,7 +114,7 @@ private fun getContactFromUri(context: Context, uri: Uri): Pair<String, String> 
     return name to phone
 }
 
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDrawer(
     contactViewModel: ContactViewModel,
@@ -131,6 +122,8 @@ fun AppDrawer(
     isDark: Boolean,
     onDismiss: () -> Unit,
 ) {
+    BackHandler { onDismiss() }
+
     val ctx = LocalContext.current
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
@@ -155,8 +148,6 @@ fun AppDrawer(
     var pendingPickContact by remember { mutableStateOf<ContactModel?>(null) }
     var pendingPickIsNew by remember { mutableStateOf(false) }
 
-    val contactsPermission = rememberPermissionState(Manifest.permission.READ_CONTACTS)
-
     val contactPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickContact(),
     ) { uri ->
@@ -174,11 +165,7 @@ fun AppDrawer(
     fun launchContactPick(forContact: ContactModel?, isNew: Boolean) {
         pendingPickContact = forContact
         pendingPickIsNew = isNew
-        if (contactsPermission.status.isGranted) {
-            contactPickerLauncher.launch(null)
-        } else {
-            contactsPermission.launchPermissionRequest()
-        }
+        contactPickerLauncher.launch(null)
     }
 
     fun openDirectEdit(forContact: ContactModel?, isNew: Boolean) {
@@ -237,10 +224,10 @@ fun AppDrawer(
                         .fillMaxWidth()
                         .background(AppColors.AppBarYellow)
                         .statusBarsPadding()
-                        .height(56.dp),
+                        .height(48.dp),
                 ) {
                     Text(
-                        "메뉴", fontSize = 20.sp, fontWeight = FontWeight.W800,
+                        "메뉴", fontSize = 20.sp, fontWeight = FontWeight.Bold,
                         color = AppColors.AppBarFg,
                         modifier = Modifier.align(Alignment.CenterStart).padding(start = 18.dp),
                     )
@@ -272,11 +259,9 @@ fun AppDrawer(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(badgeBg, RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp))
-                                    .border(
-                                        width = 0.dp,
-                                        color = Color.Transparent,
-                                        shape = RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp),
-                                    )
+                                    .drawBehind {
+                                        drawLine(borderC, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+                                    }
                                     .padding(start = 12.dp, end = 4.dp, top = 9.dp, bottom = 9.dp),
                             ) {
                                 Box(
@@ -288,6 +273,7 @@ fun AppDrawer(
                                 Spacer(Modifier.width(9.dp))
                                 Text(
                                     "위치", fontSize = 12.sp, fontWeight = FontWeight.W800, color = textC,
+                                    letterSpacing = 0.1.sp,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Switch(
@@ -297,7 +283,16 @@ fun AppDrawer(
                                         checkedThumbColor = if (isDark) AppColors.BlueDark else AppColors.Blue,
                                         checkedTrackColor = (if (isDark) AppColors.BlueDark else AppColors.Blue).copy(alpha = 0.3f),
                                     ),
-                                    modifier = Modifier.height(26.dp),
+                                    modifier = Modifier
+                                        .layout { measurable, constraints ->
+                                            val placeable = measurable.measure(
+                                                constraints.copy(minHeight = 0, maxHeight = Int.MAX_VALUE)
+                                            )
+                                            layout(placeable.width, 0) {
+                                                placeable.placeRelative(0, -(placeable.height / 2))
+                                            }
+                                        }
+                                        .scale(0.65f),
                                 )
                             }
                             Column(Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 12.dp)) {
@@ -362,6 +357,9 @@ fun AppDrawer(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(badgeBg, RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp))
+                                    .drawBehind {
+                                        drawLine(borderC, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+                                    }
                                     .padding(start = 12.dp, end = 4.dp, top = 9.dp, bottom = 9.dp),
                             ) {
                                 Box(
@@ -373,6 +371,7 @@ fun AppDrawer(
                                 Spacer(Modifier.width(9.dp))
                                 Text(
                                     "내 정보", fontSize = 12.sp, fontWeight = FontWeight.W800, color = textC,
+                                    letterSpacing = 0.1.sp,
                                     modifier = Modifier.weight(1f),
                                 )
                             }
@@ -384,14 +383,14 @@ fun AppDrawer(
                                     if (hasInfo) {
                                         if (myInfo.company.isNotEmpty()) {
                                             Row {
-                                                Text("소속  ", fontSize = 12.sp, color = subC, fontWeight = FontWeight.W500)
+                                                Text("소속  ", fontSize = 12.sp, color = subC)
                                                 Text(myInfo.company, fontSize = 15.sp, fontWeight = FontWeight.W600, color = textC)
                                             }
                                         }
                                         if (myInfo.name.isNotEmpty()) {
                                             Spacer(Modifier.height(2.dp))
                                             Row {
-                                                Text("이름  ", fontSize = 12.sp, color = subC, fontWeight = FontWeight.W500)
+                                                Text("이름  ", fontSize = 12.sp, color = subC)
                                                 Text(myInfo.name, fontSize = 15.sp, fontWeight = FontWeight.W600, color = textC)
                                             }
                                         }
@@ -446,26 +445,25 @@ fun AppDrawer(
                                         val hasName = contact.name.isNotEmpty()
                                         val hasPhone = contact.phone.isNotEmpty()
                                         Text(contact.role, fontSize = 15.sp, color = subC, lineHeight = 20.sp)
-                                        Spacer(Modifier.height(1.dp))
+                                        Spacer(Modifier.height(2.dp))
+                                        Text(
+                                            if (hasName) contact.name else "이름 미입력",
+                                            fontSize = 17.sp, fontWeight = FontWeight.W700,
+                                            color = if (hasName) textC else hintC,
+                                        )
+                                        Spacer(Modifier.height(3.dp))
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                if (hasName) contact.name else "이름 미입력",
-                                                fontSize = 17.sp, fontWeight = FontWeight.W700,
-                                                color = if (hasName) textC else hintC,
-                                                modifier = Modifier.weight(1f),
-                                            )
-                                            Spacer(Modifier.width(6.dp))
                                             Icon(
                                                 Icons.Outlined.PhoneInTalk, contentDescription = null,
-                                                tint = if (hasPhone) badgeTx else hintC,
+                                                tint = if (hasPhone) (if (isDark) AppColors.BlueDark else AppColors.Blue) else hintC,
                                                 modifier = Modifier.size(13.dp),
                                             )
                                             Spacer(Modifier.width(4.dp))
                                             Text(
                                                 if (hasPhone) fmtPhone(contact.phone) else "번호 없음",
                                                 fontSize = 13.sp,
-                                                fontWeight = if (hasPhone) FontWeight.W600 else FontWeight.W400,
-                                                color = if (hasPhone) badgeTx else hintC,
+                                                fontWeight = if (hasPhone) FontWeight.W600 else FontWeight.Normal,
+                                                color = if (hasPhone) (if (isDark) AppColors.BlueDark else AppColors.Blue) else hintC,
                                             )
                                         }
                                     }
