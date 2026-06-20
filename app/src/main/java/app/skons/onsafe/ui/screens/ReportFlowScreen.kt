@@ -231,7 +231,7 @@ private fun FlowNode(
     val hasPhone = !phone.isNullOrEmpty()
     Box(
         modifier
-            .heightIn(min = 60.dp)
+            .heightIn(min = 76.dp)
             .background(nodeBg, RoundedCornerShape(12.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -268,7 +268,7 @@ private fun FlowNodeHalf(
     Box(
         modifier
             .fillMaxHeight()
-            .heightIn(min = 60.dp)
+            .heightIn(min = 76.dp)
             .background(nodeBg, RoundedCornerShape(12.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
             .padding(horizontal = 10.dp, vertical = 8.dp),

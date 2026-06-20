@@ -618,8 +618,8 @@ fun AppDrawer(
         BottomActionSheet(
             title = "연락처 추가",
             options = listOf(
-                ActionSheetOption(Icons.Outlined.EditNote, "직접 입력", 0),
                 ActionSheetOption(Icons.Outlined.Contacts, "연락처 가져오기", 1),
+                ActionSheetOption(Icons.Outlined.EditNote, "직접 입력", 0),
             ),
             isDark = isDark,
             onSelect = { choice ->
