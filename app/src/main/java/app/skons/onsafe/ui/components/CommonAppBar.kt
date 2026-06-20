@@ -32,16 +32,18 @@ fun HomeAppBar(
 ) {
     Column {
         TopAppBar(
+            expandedHeight = 48.dp,
             navigationIcon = {
                 IconButton(onClick = onMenuClick) {
-                    Icon(Icons.Default.Menu, contentDescription = "메뉴", tint = AppColors.AppBarFg)
+                    Icon(Icons.Default.Menu, contentDescription = "메뉴", tint = AppColors.AppBarFg,
+                        modifier = Modifier.size(26.dp))
                 }
             },
             title = {
                 Text(
                     text = "On-Safe",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.W800,
+                    fontWeight = FontWeight.Bold,
                     color = AppColors.AppBarFg,
                     letterSpacing = (-0.3).sp,
                 )
@@ -51,7 +53,7 @@ fun HomeAppBar(
                     Text(
                         text = company,
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.W600,
+                        fontWeight = FontWeight.Bold,
                         color = AppColors.AppBarFg,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -88,6 +90,7 @@ fun DetailAppBar(
 ) {
     Column {
         TopAppBar(
+            expandedHeight = 48.dp,
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(
@@ -108,7 +111,8 @@ fun DetailAppBar(
             },
             actions = {
                 IconButton(onClick = onMenuClick) {
-                    Icon(Icons.Default.Menu, contentDescription = "메뉴", tint = AppColors.AppBarFg)
+                    Icon(Icons.Default.Menu, contentDescription = "메뉴", tint = AppColors.AppBarFg,
+                        modifier = Modifier.size(28.dp))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(

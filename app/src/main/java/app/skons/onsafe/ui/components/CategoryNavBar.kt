@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountTree
@@ -52,17 +53,17 @@ fun CategoryNavBar(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 3.dp, vertical = 5.dp)
+                    .padding(horizontal = 3.dp, vertical = 3.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .then(
                         if (isActive) Modifier.background(activeColor.copy(alpha = 0.12f))
                         else Modifier
                     )
                     .clickable(enabled = !isActive) { onNavigate(item.route) }
-                    .padding(vertical = 2.dp),
+                    .padding(vertical = 1.dp),
             ) {
                 Icon(item.icon, contentDescription = item.label, tint = color,
-                    modifier = Modifier.padding(bottom = 3.dp))
+                    modifier = Modifier.padding(bottom = 2.dp).size(22.dp))
                 Text(
                     text = item.label,
                     fontSize = 11.sp,

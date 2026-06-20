@@ -1,18 +1,24 @@
 package app.skons.onsafe
 
+import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,6 +40,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val isDark = isSystemInDarkTheme()
+            val view = LocalView.current
+            if (!view.isInEditMode) {
+                SideEffect {
+                    val window = (view.context as Activity).window
+                    // 투명 내비바 — 앱 배경색이 비쳐 보임 (Flutter와 동일 방식)
+                    window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        window.isNavigationBarContrastEnforced = false
+                    }
+                    WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !isDark
+                }
+            }
             OnSafeTheme(darkTheme = isDark) {
                 val navController = rememberNavController()
                 val contactViewModel: ContactViewModel = viewModel()
@@ -41,10 +59,15 @@ class MainActivity : ComponentActivity() {
 
                 var drawerOpen by remember { mutableStateOf(false) }
 
-                BackHandler(enabled = drawerOpen) { drawerOpen = false }
-
                 Box(Modifier.fillMaxSize()) {
-                    NavHost(navController = navController, startDestination = "splash") {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "splash",
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None },
+                    ) {
                         composable("splash") {
                             SplashScreen(navController = navController)
                         }

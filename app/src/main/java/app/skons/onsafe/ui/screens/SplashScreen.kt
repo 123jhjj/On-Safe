@@ -37,7 +37,6 @@ import app.skons.onsafe.R
 import app.skons.onsafe.ui.theme.AppColors
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -48,34 +47,34 @@ fun SplashScreen(navController: NavHostController) {
 
     var showPermDialog by remember { mutableStateOf(false) }
     var dialogDismissed by remember { mutableStateOf(false) }
+    var permissionsHandled by remember { mutableStateOf(false) }
 
-    val locationPerm = rememberMultiplePermissionsState(
-        listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+    val allPermissions = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.CAMERA,
+            Manifest.permission.READ_CONTACTS,
+        ),
+        onPermissionsResult = { permissionsHandled = true },
     )
-    val cameraPerm = rememberPermissionState(Manifest.permission.CAMERA)
-    val contactsPerm = rememberPermissionState(Manifest.permission.READ_CONTACTS)
 
     LaunchedEffect(Unit) {
-        // Note: using applicationContext because we don't have a direct Context here
-        // We use the pattern of checking a flag
         navController.context.let { ctx ->
             val prefs = ctx.getSharedPreferences("onsafe_prefs", Context.MODE_PRIVATE)
             val setupComplete = prefs.getBoolean("onsafe-first-setup-complete", false)
             if (!setupComplete) {
                 showPermDialog = true
                 while (!dialogDismissed) delay(50)
-                locationPerm.launchMultiplePermissionRequest()
-                delay(500)
-                cameraPerm.launchPermissionRequest()
-                delay(500)
-                contactsPerm.launchPermissionRequest()
-                delay(500)
+                allPermissions.launchMultiplePermissionRequest()
+                // 모든 권한 팝업이 닫힐 때까지 대기
+                while (!permissionsHandled) delay(100)
                 prefs.edit()
                     .putBoolean("onsafe-location-notice-permanent", true)
                     .putBoolean("onsafe-first-setup-complete", true)
                     .apply()
             } else {
-                delay(400)
+                delay(500)
             }
         }
         navController.navigate("home") { popUpTo("splash") { inclusive = true } }

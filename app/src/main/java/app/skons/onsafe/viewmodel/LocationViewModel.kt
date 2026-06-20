@@ -1,13 +1,10 @@
 package app.skons.onsafe.viewmodel
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.os.Looper
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationCallback
@@ -64,22 +61,12 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
     fun fetch() {
         if (!_state.value.locationEnabled) return
         val ctx = getApplication<Application>()
-        if (!hasLocationPermission(ctx)) {
-            _state.value = _state.value.copy(status = LocationStatus.Denied, fetching = false)
-            return
-        }
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
             _state.value = _state.value.copy(fetching = true, status = LocationStatus.Loading)
             fetchLocation(ctx)
         }
     }
-
-    private fun hasLocationPermission(ctx: Context): Boolean =
-        ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED
 
     @SuppressLint("MissingPermission")
     private suspend fun fetchLocation(ctx: Context) {
@@ -151,6 +138,17 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    private fun cleanAddress(raw: String): String {
+        var addr = raw.trim()
+        if (addr.startsWith("대한민국")) addr = addr.removePrefix("대한민국").trimStart()
+        addr = addr.replace(Regex("\\s*[\\(,].*"), "").trim()
+        // 지번 "번지" 접미사 제거 ("3-7번지" → "3-7")
+        addr = addr.replace(Regex("(\\d+(?:-\\d+)?)번지"), "$1")
+        // 건물번호 뒤 건물명·층·호 제거 ("123 빌딩명" → "123", "3-7 2층 2호" → "3-7")
+        addr = addr.replace(Regex("(\\d+(?:-\\d+)?)\\s+\\S.*$"), "$1").trim()
+        return addr
+    }
+
     private suspend fun reverseGeocode(ctx: Context, lat: Double, lng: Double): String =
         withContext(Dispatchers.IO) {
             try {
@@ -159,7 +157,7 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
                 val addresses = Geocoder(ctx, Locale.forLanguageTag("ko-KR"))
                     .getFromLocation(lat, lng, 3)
                 if (!addresses.isNullOrEmpty()) {
-                    addresses[0].getAddressLine(0) ?: ""
+                    cleanAddress(addresses[0].getAddressLine(0) ?: "")
                 } else ""
             } catch (e: IOException) { "" }
         }
