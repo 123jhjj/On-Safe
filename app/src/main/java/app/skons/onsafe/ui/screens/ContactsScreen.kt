@@ -15,7 +15,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -75,8 +79,15 @@ fun ContactsScreen(
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
                 val contacts = appData.contacts
                 val spacing = 7.dp
-                val fontScale = LocalDensity.current.fontScale
-                val estCardH = (93f * fontScale).dp
+                val density = LocalDensity.current
+
+                // Measured natural card height in pixels (0 until first measurement)
+                var naturalCardHeightPx by remember { mutableIntStateOf(0) }
+
+                val estCardH = if (naturalCardHeightPx > 0)
+                    with(density) { naturalCardHeightPx.toDp() }
+                else
+                    (93f * density.fontScale).dp
                 val totalEst = estCardH * contacts.size + spacing * (contacts.size - 1).coerceAtLeast(0)
                 val shouldScroll = contacts.isNotEmpty() && totalEst > maxHeight
 
@@ -89,10 +100,15 @@ fun ContactsScreen(
                         ContactCard(
                             contact = c,
                             isDark = isDark,
-                            modifier = if (shouldScroll)
-                                Modifier.fillMaxWidth()
-                            else
-                                Modifier.fillMaxWidth().weight(1f),
+                            modifier = if (shouldScroll) {
+                                // Measure natural card height from the first card (only once)
+                                if (i == 0 && naturalCardHeightPx == 0)
+                                    Modifier.fillMaxWidth().onSizeChanged { naturalCardHeightPx = it.height }
+                                else
+                                    Modifier.fillMaxWidth()
+                            } else {
+                                Modifier.fillMaxWidth().weight(1f)
+                            },
                             onTap = {
                                 val phone = c.phone.replace(Regex("\\D"), "")
                                 if (phone.isNotEmpty()) {

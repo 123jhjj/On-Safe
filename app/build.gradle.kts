@@ -7,8 +7,9 @@ plugins {
 }
 
 val keyPropertiesFile = rootProject.file("key.properties")
+check(keyPropertiesFile.exists()) { "key.properties not found. Create it from key.properties.template." }
 val keyProperties = Properties().apply {
-    if (keyPropertiesFile.exists()) load(keyPropertiesFile.inputStream())
+    load(keyPropertiesFile.inputStream())
 }
 
 android {
@@ -38,11 +39,10 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keyProperties.getProperty("keyAlias") ?: "onsafe"
-            keyPassword = keyProperties.getProperty("keyPassword") ?: "N1103890"
+            keyAlias = keyProperties.getProperty("keyAlias")
+            keyPassword = keyProperties.getProperty("keyPassword")
             storeFile = keyProperties.getProperty("storeFile")?.let { file(it) }
-                ?: file("../keystore/onsafe.jks")
-            storePassword = keyProperties.getProperty("storePassword") ?: "N1103890"
+            storePassword = keyProperties.getProperty("storePassword")
         }
     }
 

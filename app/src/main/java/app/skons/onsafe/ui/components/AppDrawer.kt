@@ -5,10 +5,9 @@ import android.net.Uri
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,6 +51,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +62,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -175,14 +176,15 @@ fun AppDrawer(
         showEditSheet = true
     }
 
-    // Rotation for location refresh icon
-    val infiniteTransition = rememberInfiniteTransition(label = "refresh")
-    val rawRotation by infiniteTransition.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(700, easing = LinearEasing)),
-        label = "rotation",
-    )
-    val refreshRotation = if (locState.fetching) rawRotation else 0f
+    val refreshRotation = remember { Animatable(0f) }
+    LaunchedEffect(locState.fetching) {
+        if (locState.fetching) {
+            refreshRotation.snapTo(0f)
+            refreshRotation.animateTo(360f, infiniteRepeatable(tween(700, easing = LinearEasing)))
+        } else {
+            refreshRotation.stop()
+        }
+    }
 
     // Reorderable list
     val contacts = appData.contacts
@@ -321,7 +323,7 @@ fun AppDrawer(
                                             tint = subC,
                                             modifier = Modifier
                                                 .size(15.dp)
-                                                .rotate(refreshRotation)
+                                                .rotate(refreshRotation.value)
                                                 .clickable { locationViewModel.fetch() },
                                         )
                                         Spacer(Modifier.width(6.dp))
@@ -456,7 +458,7 @@ fun AppDrawer(
                                             Icon(
                                                 Icons.Outlined.PhoneInTalk, contentDescription = null,
                                                 tint = if (hasPhone) (if (isDark) AppColors.BlueDark else AppColors.Blue) else hintC,
-                                                modifier = Modifier.size(13.dp),
+                                                modifier = Modifier.size(with(LocalDensity.current) { 13.sp.toDp() }),
                                             )
                                             Spacer(Modifier.width(4.dp))
                                             Text(

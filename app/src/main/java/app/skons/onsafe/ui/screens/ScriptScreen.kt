@@ -8,10 +8,9 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -198,13 +197,15 @@ fun ScriptScreen(
         locationViewModel.fetch()
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "refresh")
-    val rawRot by infiniteTransition.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(700, easing = LinearEasing)),
-        label = "rotation",
-    )
-    val refreshRot = if (locState.fetching) rawRot else 0f
+    val refreshRot = remember { Animatable(0f) }
+    LaunchedEffect(locState.fetching) {
+        if (locState.fetching) {
+            refreshRot.snapTo(0f)
+            refreshRot.animateTo(360f, infiniteRepeatable(tween(700, easing = LinearEasing)))
+        } else {
+            refreshRot.stop()
+        }
+    }
 
     fun buildScript(): String {
         val lines = mutableListOf(
@@ -366,7 +367,7 @@ fun ScriptScreen(
                     Spacer(Modifier.width(6.dp))
                     Icon(
                         Icons.Outlined.Refresh, null, tint = subC,
-                        modifier = Modifier.size(16.dp).rotate(refreshRot)
+                        modifier = Modifier.size(16.dp).rotate(refreshRot.value)
                             .clickable { locationViewModel.fetch() },
                     )
                 }
