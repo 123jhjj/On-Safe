@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -180,7 +179,10 @@ fun AppDrawer(
     LaunchedEffect(locState.fetching) {
         if (locState.fetching) {
             refreshRotation.snapTo(0f)
-            refreshRotation.animateTo(360f, infiniteRepeatable(tween(700, easing = LinearEasing)))
+            while (true) {
+                refreshRotation.animateTo(360f, tween(700, easing = LinearEasing))
+                refreshRotation.snapTo(0f)
+            }
         } else {
             refreshRotation.stop()
         }

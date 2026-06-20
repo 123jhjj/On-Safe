@@ -84,7 +84,10 @@ fun HomeScreen(
             android.widget.Toast.makeText(ctx, "뒤로 버튼을 한번 더 누르면 종료됩니다", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
-    LaunchedEffect(Unit) { locationViewModel.fetch() }
+    LaunchedEffect(Unit) {
+        locationViewModel.fetch()
+        while (true) { delay(60_000); locationViewModel.fetch() }
+    }
     LaunchedEffect(backPressed) { if (backPressed) { delay(2000L); backPressed = false } }
 
     val address = if (locState.locationEnabled && locState.status == LocationStatus.Ready) locState.address else null

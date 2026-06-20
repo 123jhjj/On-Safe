@@ -49,7 +49,10 @@ class MainActivity : ComponentActivity() {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         window.isNavigationBarContrastEnforced = false
                     }
-                    WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !isDark
+                    WindowCompat.getInsetsController(window, view).apply {
+                        isAppearanceLightStatusBars = true  // 앱바가 노란색(밝은 색)이므로 항상 검정 아이콘
+                        isAppearanceLightNavigationBars = !isDark
+                    }
                 }
             }
             OnSafeTheme(darkTheme = isDark) {

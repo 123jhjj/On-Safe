@@ -32,6 +32,7 @@ import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun ContactsScreen(
@@ -45,7 +46,10 @@ fun ContactsScreen(
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { locationViewModel.fetch() }
+    LaunchedEffect(Unit) {
+        locationViewModel.fetch()
+        while (true) { delay(60_000); locationViewModel.fetch() }
+    }
 
     val address = if (locState.locationEnabled && locState.status == LocationStatus.Ready) locState.address else null
 

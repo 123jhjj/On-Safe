@@ -10,7 +10,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -90,6 +89,7 @@ import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -195,13 +195,17 @@ fun ScriptScreen(
             }
         }
         locationViewModel.fetch()
+        while (true) { delay(60_000); locationViewModel.fetch() }
     }
 
     val refreshRot = remember { Animatable(0f) }
     LaunchedEffect(locState.fetching) {
         if (locState.fetching) {
             refreshRot.snapTo(0f)
-            refreshRot.animateTo(360f, infiniteRepeatable(tween(700, easing = LinearEasing)))
+            while (true) {
+                refreshRot.animateTo(360f, tween(700, easing = LinearEasing))
+                refreshRot.snapTo(0f)
+            }
         } else {
             refreshRot.stop()
         }
