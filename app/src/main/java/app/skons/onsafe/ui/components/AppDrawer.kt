@@ -471,6 +471,17 @@ fun AppDrawer(
                                             )
                                         }
                                     }
+                                    // Delete (deletable only)
+                                    if (contact.deletable) {
+                                        Icon(
+                                            Icons.Outlined.Delete, contentDescription = "삭제",
+                                            tint = if (isDark) Color(0xFFFF8080) else Color(0xFFCC3333),
+                                            modifier = Modifier
+                                                .padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+                                                .size(17.dp)
+                                                .clickable { contactViewModel.removeContact(contact.id) },
+                                        )
+                                    }
                                     // Edit button
                                     Icon(
                                         Icons.Default.Edit, contentDescription = "수정",
@@ -482,17 +493,6 @@ fun AppDrawer(
                                                 showActionSheetFor = contact
                                             },
                                     )
-                                    // Delete (deletable only)
-                                    if (contact.deletable) {
-                                        Icon(
-                                            Icons.Outlined.Delete, contentDescription = "삭제",
-                                            tint = if (isDark) Color(0xFFFF8080) else Color(0xFFCC3333),
-                                            modifier = Modifier
-                                                .padding(end = 4.dp, top = 8.dp, bottom = 8.dp)
-                                                .size(17.dp)
-                                                .clickable { contactViewModel.removeContact(contact.id) },
-                                        )
-                                    }
                                     // Drag handle
                                     Box(
                                         Modifier
@@ -600,8 +600,8 @@ fun AppDrawer(
         BottomActionSheet(
             title = "${contact.role} 수정",
             options = listOf(
-                ActionSheetOption(Icons.Outlined.EditNote, "직접 입력", 0),
                 ActionSheetOption(Icons.Outlined.Contacts, "연락처 가져오기", 1),
+                ActionSheetOption(Icons.Outlined.EditNote, "직접 입력", 0),
             ),
             isDark = isDark,
             onSelect = { choice ->
