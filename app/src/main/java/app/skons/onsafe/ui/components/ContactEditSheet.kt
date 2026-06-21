@@ -107,7 +107,7 @@ fun ContactEditSheetContent(
     val hintC = if (isDark) AppColors.HintDark else AppColors.HintLight
     val fillBg = if (isDark) AppColors.BgDark else AppColors.BgLight
 
-    var role by remember { mutableStateOf(if (isMyInfo) "" else (contact?.role ?: "")) }
+    var role by remember { mutableStateOf(if (isMyInfo) "" else (contact?.role?.takeIf { it != "추가 연락처" } ?: "")) }
     var name by remember { mutableStateOf(if (isMyInfo) (myInfo?.name ?: "") else (initialName ?: contact?.name ?: "")) }
     var phone by remember { mutableStateOf(TextFieldValue(if (isMyInfo) "" else formatPhone(initialPhone ?: contact?.phone ?: ""))) }
     var company by remember { mutableStateOf(if (isMyInfo) (myInfo?.company ?: "") else "") }

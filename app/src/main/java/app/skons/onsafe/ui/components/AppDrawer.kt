@@ -145,6 +145,7 @@ fun AppDrawer(
     var prefillPhone by remember { mutableStateOf("") }
     var showActionSheetFor by remember { mutableStateOf<ContactModel?>(null) }
     var showAddActionSheet by remember { mutableStateOf(false) }
+    var deleteConfirmContact by remember { mutableStateOf<ContactModel?>(null) }
     var pendingPickContact by remember { mutableStateOf<ContactModel?>(null) }
     var pendingPickIsNew by remember { mutableStateOf(false) }
 
@@ -479,7 +480,7 @@ fun AppDrawer(
                                             modifier = Modifier
                                                 .padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
                                                 .size(17.dp)
-                                                .clickable { contactViewModel.removeContact(contact.id) },
+                                                .clickable { deleteConfirmContact = contact },
                                         )
                                     }
                                     // Edit button
@@ -578,7 +579,7 @@ fun AppDrawer(
                     } else if (target.deletable) {
                         contactViewModel.updateExtraContact(
                             id = target.id,
-                            role = fields.role,
+                            role = fields.role.ifEmpty { "추가 연락처" },
                             name = fields.name,
                             phone = fields.phone,
                         )
@@ -593,6 +594,23 @@ fun AppDrawer(
                 onDismiss = { showEditSheet = false },
             )
         }
+    }
+
+    // Delete confirmation sheet
+    deleteConfirmContact?.let { contact ->
+        BottomActionSheet(
+            title = "${contact.role} 삭제",
+            options = listOf(
+                ActionSheetOption(Icons.Outlined.Delete, "삭제", 0),
+                ActionSheetOption(Icons.Default.Close, "취소", 1),
+            ),
+            isDark = isDark,
+            onSelect = { choice ->
+                deleteConfirmContact = null
+                if (choice == 0) contactViewModel.removeContact(contact.id)
+            },
+            onDismiss = { deleteConfirmContact = null },
+        )
     }
 
     // Action sheet for existing contact (직접 입력 / 연락처 가져오기)
