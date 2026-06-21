@@ -135,7 +135,9 @@ fun ScriptScreen(
         pendingIndex = -1
     }
 
-    LaunchedEffect(Unit) { scriptViewModel.initDefaults(appData.myInfo.company, appData.myInfo.name) }
+    LaunchedEffect(appData.myInfo.company, appData.myInfo.name) {
+        scriptViewModel.initDefaults(appData.myInfo.company, appData.myInfo.name)
+    }
     LocationPeriodicFetch(locationViewModel)
 
     val refreshRot = remember { Animatable(0f) }

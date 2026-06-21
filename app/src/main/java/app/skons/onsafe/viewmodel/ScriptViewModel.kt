@@ -86,13 +86,13 @@ class ScriptViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun initDefaults(company: String, reporter: String) {
-        if (_state.value.time.isEmpty()) {
-            _state.value = _state.value.copy(
-                company = _state.value.company.ifEmpty { company },
-                reporter = _state.value.reporter.ifEmpty { reporter },
-                time = nowStr(),
-            )
-        }
+        val s = _state.value
+        _state.value = s.copy(
+            company = company.ifEmpty { s.company },
+            reporter = reporter.ifEmpty { s.reporter },
+            time = if (s.time.isEmpty()) nowStr() else s.time,
+        )
+        save()
     }
 
     companion object {
