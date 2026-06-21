@@ -14,7 +14,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -203,10 +204,7 @@ fun ScriptScreen(
                 .fillMaxSize()
                 .padding(inner)
                 .imePadding()
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() },
-                ) { /* focusManager.clearFocus() */ },
+                .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
         ) {
             Column(
                 Modifier
