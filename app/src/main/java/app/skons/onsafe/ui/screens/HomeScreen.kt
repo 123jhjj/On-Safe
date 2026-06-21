@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import app.skons.onsafe.ui.components.Emergency119Card
 import app.skons.onsafe.ui.components.HomeAppBar
+import app.skons.onsafe.ui.components.LocationPeriodicFetch
 import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.ui.theme.LocalDarkTheme
@@ -86,10 +87,7 @@ fun HomeScreen(
             android.widget.Toast.makeText(ctx, "뒤로 버튼을 한번 더 누르면 종료됩니다", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
-    LaunchedEffect(Unit) {
-        locationViewModel.fetch()
-        while (true) { delay(60_000); locationViewModel.fetch() }
-    }
+    LocationPeriodicFetch(locationViewModel)
     LaunchedEffect(backPressed) { if (backPressed) { delay(2000L); backPressed = false } }
 
     val address = if (locState.locationEnabled && locState.status == LocationStatus.Ready) locState.address else null

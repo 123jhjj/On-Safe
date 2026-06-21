@@ -25,12 +25,16 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -82,6 +86,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.skons.onsafe.ui.components.ActionSheetOption
 import app.skons.onsafe.ui.components.BottomActionSheet
 import app.skons.onsafe.ui.components.DetailAppBar
+import app.skons.onsafe.ui.components.LocationPeriodicFetch
 import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.ui.theme.LocalDarkTheme
@@ -91,8 +96,6 @@ import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
 import app.skons.onsafe.viewmodel.ScriptViewModel
 import coil.compose.AsyncImage
-import kotlinx.coroutines.delay
-
 @Composable
 fun ScriptScreen(
     contactViewModel: ContactViewModel,
@@ -131,11 +134,8 @@ fun ScriptScreen(
         pendingIndex = -1
     }
 
-    LaunchedEffect(Unit) {
-        scriptViewModel.initDefaults(appData.myInfo.company, appData.myInfo.name)
-        locationViewModel.fetch()
-        while (true) { delay(60_000); locationViewModel.fetch() }
-    }
+    LaunchedEffect(Unit) { scriptViewModel.initDefaults(appData.myInfo.company, appData.myInfo.name) }
+    LocationPeriodicFetch(locationViewModel)
 
     val refreshRot = remember { Animatable(0f) }
     LaunchedEffect(locState.fetching) {
@@ -202,10 +202,11 @@ fun ScriptScreen(
             Modifier
                 .fillMaxSize()
                 .padding(inner)
+                .imePadding()
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                ) { focusManager.clearFocus() },
+                ) { /* focusManager.clearFocus() */ },
         ) {
             Column(
                 Modifier
@@ -462,7 +463,7 @@ private fun ScriptField(
                 value = value,
                 onValueChange = onValueChange,
                 textStyle = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.W600, color = textC),
-                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.None),
                 modifier = Modifier.fillMaxWidth(),
                 decorationBox = { innerTextField ->
                     if (value.isEmpty()) Text(hint, color = hintC, fontSize = 15.sp, fontWeight = FontWeight.W600)

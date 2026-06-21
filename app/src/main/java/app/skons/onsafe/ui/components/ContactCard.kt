@@ -1,13 +1,11 @@
 package app.skons.onsafe.ui.components
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,14 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PhoneInTalk
+import androidx.compose.material.icons.outlined.PhoneInTalk
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,63 +33,47 @@ fun ContactCard(
     onTap: (() -> Unit)? = null,
 ) {
     val c = appThemeColors()
-    val hasName = contact.name.isNotEmpty()
     val hasPhone = contact.phone.isNotEmpty()
-    val fixedPhoneSp = (14f / LocalDensity.current.fontScale).sp
 
-    Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = c.cardBg,
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, c.border, RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
-            .then(if (onTap != null) Modifier.clickable { onTap() } else Modifier),
+            .then(if (onTap != null) Modifier.clickable { onTap() } else Modifier)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier.fillMaxHeight().padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = 11.dp),
-            verticalArrangement = Arrangement.Center,
-        ) {
+        Column(Modifier.weight(1f)) {
+            if (contact.role.isNotEmpty()) {
+                Text(contact.role, fontSize = 14.sp, color = c.sub, fontWeight = FontWeight.W500)
+                Spacer(Modifier.height(2.dp))
+            }
+            Text(
+                text = contact.name.ifEmpty { "미입력" },
+                fontSize = 18.sp,
+                fontWeight = FontWeight.W700,
+                color = if (contact.name.isNotEmpty()) c.text else c.hint,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        if (hasPhone) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier
+                    .background(c.blue, RoundedCornerShape(20.dp))
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = c.badgeBg,
-                    modifier = Modifier.border(1.dp, c.badgeBorder, RoundedCornerShape(6.dp)),
-                ) {
-                    Text(
-                        text = contact.role,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.W700,
-                        color = c.badgeTx,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                Icon(
-                    Icons.Default.PhoneInTalk,
-                    contentDescription = null,
-                    tint = if (hasPhone) c.blue else c.hint,
-                    modifier = Modifier.size(13.dp),
-                )
+                Icon(Icons.Outlined.PhoneInTalk, null, tint = Color.White, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(5.dp))
-                Text(
-                    text = if (hasPhone) fmtPhone(contact.phone) else "번호 없음",
-                    fontSize = fixedPhoneSp,
-                    fontWeight = if (hasPhone) FontWeight.W600 else FontWeight.Normal,
-                    color = if (hasPhone) c.blue else c.hint,
-                    maxLines = 1,
-                )
+                Text("전화", fontSize = 13.sp, fontWeight = FontWeight.W700, color = Color.White)
             }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = if (hasName) contact.name else "미입력",
-                fontSize = 19.sp,
-                fontWeight = FontWeight.W700,
-                color = if (hasName) c.text else c.hint,
-            )
+        } else {
+            Box(
+                Modifier
+                    .background(c.hint.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            ) {
+                Text("번호 없음", fontSize = 12.sp, color = c.hint, fontWeight = FontWeight.W500)
+            }
         }
     }
 }

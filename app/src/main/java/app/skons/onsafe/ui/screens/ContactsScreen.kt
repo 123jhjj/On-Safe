@@ -2,6 +2,8 @@ package app.skons.onsafe.ui.screens
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,15 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -28,13 +32,13 @@ import androidx.navigation.NavHostController
 import app.skons.onsafe.ui.components.ContactCard
 import app.skons.onsafe.ui.components.DetailAppBar
 import app.skons.onsafe.ui.components.Emergency119Card
+import app.skons.onsafe.ui.components.LocationPeriodicFetch
 import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.ui.theme.LocalDarkTheme
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun ContactsScreen(
@@ -48,12 +52,13 @@ fun ContactsScreen(
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        locationViewModel.fetch()
-        while (true) { delay(60_000); locationViewModel.fetch() }
-    }
+    LocationPeriodicFetch(locationViewModel)
 
     val address = if (locState.locationEnabled && locState.status == LocationStatus.Ready) locState.address else null
+    val contacts = appData.contacts
+
+    val borderC = if (isDark) AppColors.BorderDark else AppColors.BorderLight
+    val cardBg  = if (isDark) AppColors.CardDark   else AppColors.CardLight
 
     Scaffold(
         topBar = {
@@ -71,50 +76,55 @@ fun ContactsScreen(
             Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 14.dp),
         ) {
+            Spacer(Modifier.height(10.dp))
             Emergency119Card(address = address)
-            Spacer(Modifier.height(8.dp))
 
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                val contacts = appData.contacts
-                val spacing = 7.dp
-                val density = LocalDensity.current
+            if (contacts.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
 
-                var naturalCardHeightPx by remember { mutableIntStateOf(0) }
+                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().padding(bottom = 10.dp)) {
+                    val density = LocalDensity.current
+                    var naturalCardHeightPx by remember { mutableIntStateOf(0) }
 
-                val estCardH = if (naturalCardHeightPx > 0)
-                    with(density) { naturalCardHeightPx.toDp() }
-                else
-                    (93f * density.fontScale).dp
-                val totalEst = estCardH * contacts.size + spacing * (contacts.size - 1).coerceAtLeast(0)
-                val shouldScroll = contacts.isNotEmpty() && totalEst > maxHeight
+                    val estCardH = if (naturalCardHeightPx > 0)
+                        with(density) { naturalCardHeightPx.toDp() }
+                    else
+                        (70f * density.fontScale).dp
 
-                Column(
-                    Modifier.fillMaxSize()
-                        .then(if (shouldScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier),
-                ) {
-                    contacts.forEachIndexed { i, c ->
-                        if (i > 0) Spacer(Modifier.height(spacing))
-                        ContactCard(
-                            contact = c,
-                            modifier = if (shouldScroll) {
-                                if (i == 0 && naturalCardHeightPx == 0)
-                                    Modifier.fillMaxWidth().onSizeChanged { naturalCardHeightPx = it.height }
-                                else
-                                    Modifier.fillMaxWidth()
-                            } else {
-                                Modifier.fillMaxWidth().weight(1f)
-                            },
-                            onTap = {
-                                val phone = c.phone.replace(Regex("\\D"), "")
-                                if (phone.isNotEmpty()) {
-                                    ctx.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
-                                } else {
-                                    android.widget.Toast.makeText(ctx, "연락처 등록 필요", android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                        )
+                    val totalEst = estCardH * contacts.size + 1.dp * (contacts.size - 1).coerceAtLeast(0)
+                    val shouldScroll = totalEst > maxHeight
+
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .then(if (!shouldScroll) Modifier.fillMaxSize() else Modifier)
+                            .border(1.dp, borderC, RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(cardBg)
+                            .then(if (shouldScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+                    ) {
+                        contacts.forEachIndexed { i, contact ->
+                            if (i > 0) HorizontalDivider(color = borderC, thickness = 1.dp)
+                            ContactCard(
+                                contact = contact,
+                                modifier = when {
+                                    !shouldScroll -> Modifier.fillMaxWidth().weight(1f)
+                                    i == 0 && naturalCardHeightPx == 0 ->
+                                        Modifier.fillMaxWidth().onSizeChanged { naturalCardHeightPx = it.height }
+                                    else -> Modifier.fillMaxWidth()
+                                },
+                                onTap = {
+                                    val phone = contact.phone.replace(Regex("\\D"), "")
+                                    if (phone.isNotEmpty()) {
+                                        ctx.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")))
+                                    } else {
+                                        android.widget.Toast.makeText(ctx, "연락처 등록 필요", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }

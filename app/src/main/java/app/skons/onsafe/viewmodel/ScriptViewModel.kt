@@ -12,7 +12,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.Calendar
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private const val PREFS_SCRIPT = "onsafe_prefs"
 private const val KEY_SCRIPT = "onsafe-script"
@@ -94,13 +96,7 @@ class ScriptViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     companion object {
-        fun nowStr(): String {
-            val c = Calendar.getInstance()
-            return "${c.get(Calendar.YEAR)}년 ${
-                (c.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}월 ${
-                c.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}일 ${
-                c.get(Calendar.HOUR_OF_DAY).toString().padStart(2, '0')}:${
-                c.get(Calendar.MINUTE).toString().padStart(2, '0')}"
-        }
+        fun nowStr(): String =
+            SimpleDateFormat("yyyy년 MM월 dd일 HH:mm", Locale.KOREAN).format(Date())
     }
 }
