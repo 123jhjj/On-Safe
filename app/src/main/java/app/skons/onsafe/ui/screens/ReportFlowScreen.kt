@@ -130,9 +130,9 @@ fun ReportFlowScreen(
                         nodeText = if (isDark) Color(0xFFFF8080) else Color(0xFFA32D2D),
                         modifier = Modifier.fillMaxWidth(0.78f).align(Alignment.CenterHorizontally),
                     )
-                    Spacer(Modifier.weight(0.08f))
+                    Spacer(Modifier.weight(0.05f))
                     ArrowDown(arrowC)
-                    Spacer(Modifier.weight(0.08f))
+                    Spacer(Modifier.weight(0.05f))
                     FlowNode(
                         label = "SKO 관리감독자",
                         nodeBg = if (isDark) Color(0xFF2A1800) else Color(0xFFFAEEDA),
@@ -145,9 +145,9 @@ fun ReportFlowScreen(
                             else android.widget.Toast.makeText(ctx, "연락처 등록 필요", android.widget.Toast.LENGTH_SHORT).show()
                         },
                     )
-                    Spacer(Modifier.weight(0.08f))
+                    Spacer(Modifier.weight(0.05f))
                     BranchArrow(arrowC)
-                    Spacer(Modifier.weight(0.08f))
+                    Spacer(Modifier.weight(0.05f))
                     Row(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -179,12 +179,12 @@ fun ReportFlowScreen(
                             },
                         )
                     }
-                    Spacer(Modifier.weight(0.08f))
+                    Spacer(Modifier.weight(0.05f))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Box(Modifier.weight(1f)) { ArrowDown(arrowC) }
                         Box(Modifier.weight(1f)) { ArrowDown(arrowC) }
                     }
-                    Spacer(Modifier.weight(0.08f))
+                    Spacer(Modifier.weight(0.05f))
                     Row(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
