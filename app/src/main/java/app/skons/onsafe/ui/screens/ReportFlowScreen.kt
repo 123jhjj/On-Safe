@@ -48,16 +48,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import app.skons.onsafe.ui.components.DetailAppBar
 import app.skons.onsafe.ui.components.fmtPhone
+import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 import app.skons.onsafe.viewmodel.ContactViewModel
 
 @Composable
 fun ReportFlowScreen(
     navController: NavHostController,
     contactViewModel: ContactViewModel,
-    isDark: Boolean,
     onMenuClick: () -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     val ctx = LocalContext.current
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
 
@@ -92,16 +94,10 @@ fun ReportFlowScreen(
         topBar = {
             DetailAppBar(
                 title = "보고 체계",
-                isDark = isDark,
                 currentRoute = "report",
                 onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                 onMenuClick = onMenuClick,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("home") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
+                onNavigate = { navController.navigateMain(it) },
             )
         },
         containerColor = if (isDark) AppColors.BgDark else AppColors.BgLight,
@@ -156,11 +152,12 @@ fun ReportFlowScreen(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        FlowNodeHalf(
+                        FlowNode(
                             label = "SKT 안전관리자",
                             nodeBg = if (isDark) Color(0xFF0D1E3A) else Color(0xFFE6F1FB),
                             nodeText = if (isDark) Color(0xFF5BA3F5) else Color(0xFF185FA5),
                             modifier = Modifier.weight(1f),
+                            fillHeight = true,
                             name = sktSafetyName,
                             phone = sktSafetyPhone,
                             onClick = {
@@ -168,11 +165,12 @@ fun ReportFlowScreen(
                                 else android.widget.Toast.makeText(ctx, "연락처 등록 필요", android.widget.Toast.LENGTH_SHORT).show()
                             },
                         )
-                        FlowNodeHalf(
+                        FlowNode(
                             label = "SKO 총괄책임자",
                             nodeBg = if (isDark) Color(0xFF0D1E3A) else Color(0xFFE6F1FB),
                             nodeText = if (isDark) Color(0xFF5BA3F5) else Color(0xFF185FA5),
                             modifier = Modifier.weight(1f),
+                            fillHeight = true,
                             name = skoResponsibleName,
                             phone = skoResponsiblePhone,
                             onClick = {
@@ -191,11 +189,12 @@ fun ReportFlowScreen(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        FlowNodeHalf(
+                        FlowNode(
                             label = "SKT 관리감독자",
                             nodeBg = if (isDark) Color(0xFF0A1A0A) else Color(0xFFEAF3DE),
                             nodeText = if (isDark) Color(0xFF52B847) else Color(0xFF27500A),
                             modifier = Modifier.weight(1f),
+                            fillHeight = true,
                             name = sktSupervisorName,
                             phone = sktSupervisorPhone,
                             onClick = {
@@ -203,11 +202,12 @@ fun ReportFlowScreen(
                                 else android.widget.Toast.makeText(ctx, "연락처 등록 필요", android.widget.Toast.LENGTH_SHORT).show()
                             },
                         )
-                        FlowNodeHalf(
+                        FlowNode(
                             label = "SKO CSPO",
                             nodeBg = if (isDark) Color(0xFF0A1A0A) else Color(0xFFEAF3DE),
                             nodeText = if (isDark) Color(0xFF52B847) else Color(0xFF27500A),
                             modifier = Modifier.weight(1f),
+                            fillHeight = true,
                         )
                     }
                     Spacer(Modifier.weight(1f))
@@ -223,55 +223,20 @@ private fun FlowNode(
     nodeBg: Color,
     nodeText: Color,
     modifier: Modifier = Modifier.fillMaxWidth(),
+    fillHeight: Boolean = false,
     name: String? = null,
     phone: String? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val hasName  = !name.isNullOrEmpty()
     val hasPhone = !phone.isNullOrEmpty()
+    val padH = if (fillHeight) 10.dp else 12.dp
     Box(
-        modifier
+        (if (fillHeight) modifier.fillMaxHeight() else modifier)
             .heightIn(min = 76.dp)
             .background(nodeBg, RoundedCornerShape(12.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, fontSize = 17.sp, fontWeight = FontWeight.W700, color = nodeText, textAlign = TextAlign.Center)
-            if (hasName) {
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (hasPhone) {
-                        Icon(Icons.Outlined.PhoneInTalk, null, Modifier.size(with(LocalDensity.current) { 15.sp.toDp() }), tint = nodeText)
-                        Spacer(Modifier.width(4.dp))
-                    }
-                    Text(name!!, fontSize = 15.sp, fontWeight = FontWeight.W500, color = nodeText.copy(alpha = 0.9f), textAlign = TextAlign.Center)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FlowNodeHalf(
-    label: String,
-    nodeBg: Color,
-    nodeText: Color,
-    modifier: Modifier,
-    name: String? = null,
-    phone: String? = null,
-    onClick: (() -> Unit)? = null,
-) {
-    val hasName  = !name.isNullOrEmpty()
-    val hasPhone = !phone.isNullOrEmpty()
-    Box(
-        modifier
-            .fillMaxHeight()
-            .heightIn(min = 76.dp)
-            .background(nodeBg, RoundedCornerShape(12.dp))
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .padding(horizontal = padH, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -322,4 +287,3 @@ private fun BranchArrow(arrowC: Color, modifier: Modifier = Modifier.fillMaxWidt
         drawLine(arrowC, Offset(rx, h), Offset(rx + arrowLen, h - arrowLen), sw, cap = StrokeCap.Round)
     }
 }
-

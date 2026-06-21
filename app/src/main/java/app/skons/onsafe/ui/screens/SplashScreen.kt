@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +34,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import app.skons.onsafe.R
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.delay
@@ -42,7 +42,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SplashScreen(navController: NavHostController) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalDarkTheme.current
     val bg = if (isDark) AppColors.BgDark else AppColors.AppBarYellow
 
     var showPermDialog by remember { mutableStateOf(false) }
@@ -67,7 +67,6 @@ fun SplashScreen(navController: NavHostController) {
                 showPermDialog = true
                 while (!dialogDismissed) delay(50)
                 allPermissions.launchMultiplePermissionRequest()
-                // 모든 권한 팝업이 닫힐 때까지 대기
                 while (!permissionsHandled) delay(100)
                 prefs.edit()
                     .putBoolean("onsafe-location-notice-permanent", true)

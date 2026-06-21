@@ -45,7 +45,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import app.skons.onsafe.ui.components.Emergency119Card
 import app.skons.onsafe.ui.components.HomeAppBar
+import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
@@ -68,9 +70,9 @@ fun HomeScreen(
     navController: NavHostController,
     contactViewModel: ContactViewModel,
     locationViewModel: LocationViewModel,
-    isDark: Boolean,
     onMenuClick: () -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     val ctx = LocalContext.current
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
@@ -96,15 +98,9 @@ fun HomeScreen(
         topBar = {
             HomeAppBar(
                 company = appData.myInfo.company,
-                isDark = isDark,
                 currentRoute = "home",
                 onMenuClick = onMenuClick,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("home") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
+                onNavigate = { navController.navigateMain(it) },
             )
         },
         containerColor = if (isDark) AppColors.BgDark else AppColors.BgLight,
@@ -115,7 +111,7 @@ fun HomeScreen(
                 .padding(inner)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            Emergency119Card(isDark = isDark, address = address)
+            Emergency119Card(address = address)
             Spacer(Modifier.height(7.dp))
 
             Box(

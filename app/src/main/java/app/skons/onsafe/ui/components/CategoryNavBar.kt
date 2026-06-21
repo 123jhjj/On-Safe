@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 
 private data class NavItem(val label: String, val icon: ImageVector, val route: String)
 
@@ -37,9 +38,9 @@ private val navItems = listOf(
 @Composable
 fun CategoryNavBar(
     currentRoute: String,
-    isDark: Boolean,
     onNavigate: (String) -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     val activeColor = if (isDark) AppColors.RedDark else AppColors.Red
     val inactiveColor = if (isDark) AppColors.SubDark else AppColors.SubLight
     val bgColor = if (isDark) AppColors.CardDark else AppColors.CardLight

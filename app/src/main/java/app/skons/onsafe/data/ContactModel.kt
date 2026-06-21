@@ -10,6 +10,5 @@ data class ContactModel(
 
 data class MyInfo(
     val name: String = "",
-    val siteName: String = "",
     val company: String = "",
 )

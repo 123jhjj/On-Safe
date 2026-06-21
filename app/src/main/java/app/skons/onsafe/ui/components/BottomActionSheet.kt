@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.appThemeColors
 
 data class ActionSheetOption<T>(val icon: ImageVector, val label: String, val value: T)
 
@@ -36,19 +36,16 @@ data class ActionSheetOption<T>(val icon: ImageVector, val label: String, val va
 fun <T> BottomActionSheet(
     title: String,
     options: List<ActionSheetOption<T>>,
-    isDark: Boolean,
     onSelect: (T) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val c = appThemeColors()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val textC = if (isDark) AppColors.TextDark else AppColors.TextLight
-    val subC = if (isDark) AppColors.SubDark else AppColors.SubLight
-    val borderC = if (isDark) AppColors.BorderDark else AppColors.BorderLight
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = if (isDark) AppColors.CardDark else AppColors.CardLight,
+        containerColor = c.cardBg,
         dragHandle = null,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
     ) {
@@ -60,12 +57,9 @@ fun <T> BottomActionSheet(
                 .padding(bottom = 20.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    title, fontSize = 16.sp, fontWeight = FontWeight.W700, color = textC,
-                    modifier = Modifier.weight(1f),
-                )
+                Text(title, fontSize = 16.sp, fontWeight = FontWeight.W700, color = c.text, modifier = Modifier.weight(1f))
                 IconButton(onClick = onDismiss, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = null, tint = subC)
+                    Icon(Icons.Default.Close, contentDescription = null, tint = c.sub)
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -75,13 +69,13 @@ fun <T> BottomActionSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, borderC, RoundedCornerShape(10.dp))
+                        .border(1.dp, c.border, RoundedCornerShape(10.dp))
                         .clickable { onSelect(opt.value) }
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                 ) {
-                    Icon(opt.icon, contentDescription = null, tint = subC)
+                    Icon(opt.icon, contentDescription = null, tint = c.sub)
                     Spacer(Modifier.width(12.dp))
-                    Text(opt.label, fontSize = 15.sp, fontWeight = FontWeight.W600, color = textC)
+                    Text(opt.label, fontSize = 15.sp, fontWeight = FontWeight.W600, color = c.text)
                 }
             }
             Spacer(Modifier.height(4.dp))
@@ -92,15 +86,15 @@ fun <T> BottomActionSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetContainer(
-    isDark: Boolean,
     onDismiss: () -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val c = appThemeColors()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = if (isDark) AppColors.CardDark else AppColors.CardLight,
+        containerColor = c.cardBg,
         dragHandle = null,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
     ) {

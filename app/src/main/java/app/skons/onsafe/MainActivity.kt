@@ -33,6 +33,7 @@ import app.skons.onsafe.ui.screens.SplashScreen
 import app.skons.onsafe.ui.theme.OnSafeTheme
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationViewModel
+import app.skons.onsafe.viewmodel.ScriptViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,13 +45,12 @@ class MainActivity : ComponentActivity() {
             if (!view.isInEditMode) {
                 SideEffect {
                     val window = (view.context as Activity).window
-                    // 투명 내비바 — 앱 배경색이 비쳐 보임 (Flutter와 동일 방식)
                     window.navigationBarColor = android.graphics.Color.TRANSPARENT
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         window.isNavigationBarContrastEnforced = false
                     }
                     WindowCompat.getInsetsController(window, view).apply {
-                        isAppearanceLightStatusBars = true  // 앱바가 노란색(밝은 색)이므로 항상 검정 아이콘
+                        isAppearanceLightStatusBars = true
                         isAppearanceLightNavigationBars = !isDark
                     }
                 }
@@ -59,6 +59,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val contactViewModel: ContactViewModel = viewModel()
                 val locationViewModel: LocationViewModel = viewModel()
+                val scriptViewModel: ScriptViewModel = viewModel()
 
                 var drawerOpen by remember { mutableStateOf(false) }
 
@@ -79,7 +80,6 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 contactViewModel = contactViewModel,
                                 locationViewModel = locationViewModel,
-                                isDark = isDark,
                                 onMenuClick = { drawerOpen = true },
                             )
                         }
@@ -87,7 +87,6 @@ class MainActivity : ComponentActivity() {
                             AccidentScreen(
                                 navController = navController,
                                 locationViewModel = locationViewModel,
-                                isDark = isDark,
                                 onMenuClick = { drawerOpen = true },
                             )
                         }
@@ -95,7 +94,6 @@ class MainActivity : ComponentActivity() {
                             ReportFlowScreen(
                                 navController = navController,
                                 contactViewModel = contactViewModel,
-                                isDark = isDark,
                                 onMenuClick = { drawerOpen = true },
                             )
                         }
@@ -104,7 +102,6 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 contactViewModel = contactViewModel,
                                 locationViewModel = locationViewModel,
-                                isDark = isDark,
                                 onMenuClick = { drawerOpen = true },
                             )
                         }
@@ -112,7 +109,7 @@ class MainActivity : ComponentActivity() {
                             ScriptScreen(
                                 contactViewModel = contactViewModel,
                                 locationViewModel = locationViewModel,
-                                isDark = isDark,
+                                scriptViewModel = scriptViewModel,
                                 onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                                 onMenuClick = { drawerOpen = true },
                                 onNavigate = { route ->
@@ -129,7 +126,6 @@ class MainActivity : ComponentActivity() {
                         AppDrawer(
                             contactViewModel = contactViewModel,
                             locationViewModel = locationViewModel,
-                            isDark = isDark,
                             onDismiss = { drawerOpen = false },
                         )
                     }

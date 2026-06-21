@@ -30,4 +30,9 @@ object AppColors {
     val SubDark = Color(0xFF9B9991)
     val HintLight = Color(0xFFB4B2A9)
     val HintDark = Color(0xFF5A5955)
+
+    val BadgeBgLight = Color(0xFFFFF8E0)
+    val BadgeBgDark = Color(0xFF2A2A3D)
+    val BadgeTxLight = Color(0xFF7A5C00)
+    val BadgeTxDark = Color(0xFFFFD966)
 }

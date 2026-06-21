@@ -2,7 +2,6 @@ package app.skons.onsafe.ui.screens
 
 import android.app.Activity
 import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
@@ -54,7 +53,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,74 +82,44 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.skons.onsafe.ui.components.ActionSheetOption
 import app.skons.onsafe.ui.components.BottomActionSheet
 import app.skons.onsafe.ui.components.DetailAppBar
+import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
+import app.skons.onsafe.ui.theme.appThemeColors
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
+import app.skons.onsafe.viewmodel.ScriptViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONException
-import org.json.JSONObject
-import java.util.Calendar
-
-private const val PREFS_SCRIPT = "onsafe_prefs"
-private const val KEY_SCRIPT = "onsafe-script"
 
 @Composable
 fun ScriptScreen(
     contactViewModel: ContactViewModel,
     locationViewModel: LocationViewModel,
-    isDark: Boolean,
+    scriptViewModel: ScriptViewModel,
     onBack: () -> Unit,
     onMenuClick: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
     val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
+    val isDark = LocalDarkTheme.current
+    val c = appThemeColors()
 
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
+    val state by scriptViewModel.state.collectAsStateWithLifecycle()
 
-    val bg = if (isDark) AppColors.BgDark else AppColors.BgLight
-    val textC = if (isDark) AppColors.TextDark else AppColors.TextLight
-    val subC = if (isDark) AppColors.SubDark else AppColors.SubLight
-    val borderC = if (isDark) AppColors.BorderDark else AppColors.BorderLight
-    val cardBg = if (isDark) AppColors.CardDark else AppColors.CardLight
-    val underlineC = if (isDark) Color(0xFFFF6666) else AppColors.Red
-    val blueC = if (isDark) AppColors.BlueDark else AppColors.Blue
+    val dashedColor = if (isDark) AppColors.BorderDark.copy(alpha = 0.8f) else c.border
     val chipBg = if (isDark) AppColors.BorderDark else Color(0xFFEEEEEE)
-    val hintC = if (isDark) AppColors.HintDark else AppColors.HintLight
-    val dashedColor = if (isDark) AppColors.BorderDark.copy(alpha = 0.8f) else borderC
-
-    fun nowStr(): String {
-        val c = Calendar.getInstance()
-        return "${c.get(Calendar.YEAR)}년 ${
-            (c.get(Calendar.MONTH) + 1).toString().padStart(2, '0')}월 ${
-            c.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')}일 ${
-            c.get(Calendar.HOUR_OF_DAY).toString().padStart(2, '0')}:${
-            c.get(Calendar.MINUTE).toString().padStart(2, '0')}"
-    }
-
-    var company by remember { mutableStateOf(appData.myInfo.company) }
-    var reporter by remember { mutableStateOf(appData.myInfo.name) }
-    var time by remember { mutableStateOf(nowStr()) }
-    var location by remember { mutableStateOf("") }
-    var workName by remember { mutableStateOf("") }
-    var victim by remember { mutableStateOf("") }
-    var incident by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
+    val underlineC = if (isDark) Color(0xFFFF6666) else AppColors.Red
 
     val photos = remember { mutableStateListOf<Uri?>(null, null) }
     var showPhotoSheet by remember { mutableStateOf(false) }
     var pendingIndex by remember { mutableStateOf(-1) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
 
-    // TakePicture 계약은 FLAG_GRANT_WRITE_URI_PERMISSION을 누락하므로
-    // StartActivityForResult로 직접 Intent 구성
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK && pendingIndex >= 0) {
             photos[pendingIndex] = pendingCameraUri
@@ -163,37 +131,8 @@ fun ScriptScreen(
         pendingIndex = -1
     }
 
-    fun saveScript() {
-        scope.launch(Dispatchers.IO) {
-            val json = JSONObject().apply {
-                put("company", company); put("name", reporter)
-                put("location", location); put("workName", workName)
-                put("victim", victim); put("incident", incident); put("status", status)
-            }
-            ctx.getSharedPreferences(PREFS_SCRIPT, Context.MODE_PRIVATE)
-                .edit().putString(KEY_SCRIPT, json.toString()).apply()
-        }
-    }
-
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val raw = ctx.getSharedPreferences(PREFS_SCRIPT, Context.MODE_PRIVATE)
-                .getString(KEY_SCRIPT, null)
-            if (raw != null) {
-                try {
-                    val d = JSONObject(raw)
-                    withContext(Dispatchers.Main) {
-                        d.optString("company", "").takeIf { it.isNotEmpty() }?.let { company = it }
-                        d.optString("name", "").takeIf { it.isNotEmpty() }?.let { reporter = it }
-                        location = d.optString("location", "")
-                        workName = d.optString("workName", "")
-                        victim = d.optString("victim", "")
-                        incident = d.optString("incident", "")
-                        status = d.optString("status", "")
-                    }
-                } catch (_: JSONException) {}
-            }
-        }
+        scriptViewModel.initDefaults(appData.myInfo.company, appData.myInfo.name)
         locationViewModel.fetch()
         while (true) { delay(60_000); locationViewModel.fetch() }
     }
@@ -213,9 +152,9 @@ fun ScriptScreen(
 
     fun buildScript(): String {
         val lines = mutableListOf(
-            "소속: $company", "보고자: $reporter", "발생 시각: $time",
-            "발생 장소: $location", "작업 내용: $workName",
-            "피해자: $victim", "사고 내용: $incident", "현재 상태: $status",
+            "소속: ${state.company}", "보고자: ${state.reporter}", "발생 시각: ${state.time}",
+            "발생 장소: ${state.location}", "작업 내용: ${state.workName}",
+            "피해자: ${state.victim}", "사고 내용: ${state.incident}", "현재 상태: ${state.status}",
         )
         if (locState.locationEnabled && locState.status == LocationStatus.Ready && locState.address.isNotEmpty()) {
             lines.add("위치: ${locState.address}")
@@ -251,14 +190,13 @@ fun ScriptScreen(
         topBar = {
             DetailAppBar(
                 title = "보고 양식",
-                isDark = isDark,
                 currentRoute = "script",
                 onBack = onBack,
                 onMenuClick = onMenuClick,
                 onNavigate = onNavigate,
             )
         },
-        containerColor = bg,
+        containerColor = c.bg,
     ) { inner ->
         Column(
             Modifier
@@ -269,174 +207,184 @@ fun ScriptScreen(
                     interactionSource = remember { MutableInteractionSource() },
                 ) { focusManager.clearFocus() },
         ) {
-        // 폼 카드 — 스크롤 가능, 남은 공간 채움
-        Column(
-            Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp)
-                .padding(top = 10.dp, bottom = 6.dp),
-        ) {
             Column(
                 Modifier
+                    .weight(1f)
                     .fillMaxWidth()
-                    .border(1.dp, borderC, RoundedCornerShape(16.dp))
-                    .background(cardBg, RoundedCornerShape(16.dp))
-                    .padding(horizontal = 18.dp)
-                    .padding(top = 14.dp, bottom = 16.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 14.dp)
+                    .padding(top = 10.dp, bottom = 6.dp),
             ) {
-                // Header row
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, c.border, RoundedCornerShape(16.dp))
+                        .background(c.cardBg, RoundedCornerShape(16.dp))
+                        .padding(horizontal = 18.dp)
+                        .padding(top = 14.dp, bottom = 16.dp),
                 ) {
-                    Text("보고 양식", fontSize = 13.sp, fontWeight = FontWeight.W700, color = subC, letterSpacing = 0.3.sp)
                     Row(
-                        Modifier
-                            .background(chipBg, RoundedCornerShape(8.dp))
-                            .clickable {
-                                company = appData.myInfo.company; reporter = appData.myInfo.name
-                                time = nowStr()
-                                location = ""; workName = ""; victim = ""; incident = ""; status = ""
-                                photos[0] = null; photos[1] = null
-                                saveScript(); locationViewModel.fetch()
-                            }
-                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.Refresh, null, tint = subC, modifier = Modifier.size(13.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("초기화", fontSize = 11.sp, color = subC, fontWeight = FontWeight.W600)
-                    }
-                }
-                Spacer(Modifier.height(6.dp))
-                Divider(color = borderC, thickness = 1.dp)
-
-                ScriptField("소속", company, "소속", underlineC, hintC, textC, subC) { company = it; saveScript() }
-                ScriptField("보고자", reporter, "이름", underlineC, hintC, textC, subC) { reporter = it; saveScript() }
-                ScriptField("발생 시각", time, "시간", underlineC, hintC, textC, subC) { time = it; saveScript() }
-                ScriptField("발생 장소", location, "국소명", underlineC, hintC, textC, subC) { location = it; saveScript() }
-                ScriptField("작업 내용", workName, "작업명", underlineC, hintC, textC, subC) { workName = it; saveScript() }
-                ScriptField("피해자", victim, "피해자", underlineC, hintC, textC, subC) { victim = it; saveScript() }
-                ScriptField("사고 내용", incident, "사고 내용", underlineC, hintC, textC, subC) { incident = it; saveScript() }
-                ScriptField("현재 상태", status, "현재 상태", underlineC, hintC, textC, subC) { status = it; saveScript() }
-
-                Divider(color = borderC, thickness = 1.dp, modifier = Modifier.padding(vertical = 5.dp))
-
-                // GPS row
-                val (addrText, addrColor) = when {
-                    !locState.locationEnabled -> "위치 수집 꺼짐" to subC
-                    locState.status == LocationStatus.Loading ->
-                        (locState.address.ifEmpty { "위치 수집중..." }) to subC
-                    locState.status == LocationStatus.Denied ->
-                        "위치 권한 허용안함" to (if (isDark) AppColors.RedSoftDark else AppColors.Red)
-                    locState.status == LocationStatus.ServiceDisabled ->
-                        "기기 위치 서비스 꺼짐" to (if (isDark) AppColors.RedSoftDark else AppColors.Red)
-                    locState.status == LocationStatus.Failed -> "위치 신호 없음" to subC
-                    else -> locState.address to subC
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Switch(
-                        checked = locState.locationEnabled,
-                        onCheckedChange = { locationViewModel.setLocationEnabled(it) },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = blueC,
-                            checkedTrackColor = blueC.copy(alpha = 0.3f),
-                        ),
-                        modifier = Modifier
-                            .layout { measurable, constraints ->
-                                val placeable = measurable.measure(constraints)
-                                val w = (placeable.width * 0.65f).toInt()
-                                val h = (placeable.height * 0.65f).toInt()
-                                layout(w, h) {
-                                    placeable.placeRelative(
-                                        -(placeable.width - w) / 2,
-                                        -(placeable.height - h) / 2,
-                                    )
+                        Text("보고 양식", fontSize = 13.sp, fontWeight = FontWeight.W700, color = c.sub, letterSpacing = 0.3.sp)
+                        Row(
+                            Modifier
+                                .background(chipBg, RoundedCornerShape(8.dp))
+                                .clickable {
+                                    scriptViewModel.reset(appData.myInfo.company, appData.myInfo.name)
+                                    photos[0] = null; photos[1] = null
+                                    locationViewModel.fetch()
                                 }
-                            }
-                            .scale(0.65f),
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        "위치", fontSize = 12.sp,
-                        color = if (locState.locationEnabled) blueC else subC,
-                        fontWeight = FontWeight.W600,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(addrText, fontSize = 12.sp, color = addrColor, modifier = Modifier.weight(1f))
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.Refresh, null, tint = c.sub, modifier = Modifier.size(13.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("초기화", fontSize = 11.sp, color = c.sub, fontWeight = FontWeight.W600)
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Divider(color = c.border, thickness = 1.dp)
+
+                    ScriptField("소속", state.company, "소속", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(company = it) }
+                    }
+                    ScriptField("보고자", state.reporter, "이름", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(reporter = it) }
+                    }
+                    ScriptField("발생 시각", state.time, "시간", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(time = it) }
+                    }
+                    ScriptField("발생 장소", state.location, "국소명", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(location = it) }
+                    }
+                    ScriptField("작업 내용", state.workName, "작업명", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(workName = it) }
+                    }
+                    ScriptField("피해자", state.victim, "피해자", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(victim = it) }
+                    }
+                    ScriptField("사고 내용", state.incident, "사고 내용", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(incident = it) }
+                    }
+                    ScriptField("현재 상태", state.status, "현재 상태", underlineC, c.hint, c.text, c.sub) {
+                        scriptViewModel.update { s -> s.copy(status = it) }
+                    }
+
+                    Divider(color = c.border, thickness = 1.dp, modifier = Modifier.padding(vertical = 5.dp))
+
+                    val (addrText, addrColor) = when {
+                        !locState.locationEnabled -> "위치 수집 꺼짐" to c.sub
+                        locState.status == LocationStatus.Loading ->
+                            (locState.address.ifEmpty { "위치 수집중..." }) to c.sub
+                        locState.status == LocationStatus.Denied ->
+                            "위치 권한 허용안함" to (if (isDark) AppColors.RedSoftDark else AppColors.Red)
+                        locState.status == LocationStatus.ServiceDisabled ->
+                            "기기 위치 서비스 꺼짐" to (if (isDark) AppColors.RedSoftDark else AppColors.Red)
+                        locState.status == LocationStatus.Failed -> "위치 신호 없음" to c.sub
+                        else -> locState.address to c.sub
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Switch(
+                            checked = locState.locationEnabled,
+                            onCheckedChange = { locationViewModel.setLocationEnabled(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = c.blue,
+                                checkedTrackColor = c.blue.copy(alpha = 0.3f),
+                            ),
+                            modifier = Modifier
+                                .layout { measurable, constraints ->
+                                    val placeable = measurable.measure(constraints)
+                                    val w = (placeable.width * 0.65f).toInt()
+                                    val h = (placeable.height * 0.65f).toInt()
+                                    layout(w, h) {
+                                        placeable.placeRelative(
+                                            -(placeable.width - w) / 2,
+                                            -(placeable.height - h) / 2,
+                                        )
+                                    }
+                                }
+                                .scale(0.65f),
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "위치", fontSize = 12.sp,
+                            color = if (locState.locationEnabled) c.blue else c.sub,
+                            fontWeight = FontWeight.W600,
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(addrText, fontSize = 12.sp, color = addrColor, modifier = Modifier.weight(1f))
+                        Spacer(Modifier.width(6.dp))
+                        Icon(
+                            Icons.Outlined.Refresh, null, tint = c.sub,
+                            modifier = Modifier.size(16.dp).rotate(refreshRot.value)
+                                .clickable { locationViewModel.fetch() },
+                        )
+                    }
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Row(Modifier.fillMaxWidth()) {
+                        PhotoSlot(
+                            modifier = Modifier.weight(1f),
+                            uri = photos.getOrNull(0), dashedColor = dashedColor, subC = c.sub,
+                            onTap = { pendingIndex = 0; showPhotoSheet = true },
+                            onRemove = { photos[0] = null },
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        PhotoSlot(
+                            modifier = Modifier.weight(1f),
+                            uri = photos.getOrNull(1), dashedColor = dashedColor, subC = c.sub,
+                            onTap = { pendingIndex = 1; showPhotoSheet = true },
+                            onRemove = { photos[1] = null },
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Divider(color = c.border, thickness = 1.dp)
+                }
+            }
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+            ) {
+                Button(
+                    onClick = ::shareText,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDark) AppColors.BorderDark else Color(0xFFDDDDDD),
+                        contentColor = c.text,
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                ) {
+                    Icon(Icons.Outlined.Article, null, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
-                    Icon(
-                        Icons.Outlined.Refresh, null, tint = subC,
-                        modifier = Modifier.size(16.dp).rotate(refreshRot.value)
-                            .clickable { locationViewModel.fetch() },
-                    )
+                    Text("텍스트 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
                 }
-
-                Spacer(Modifier.height(6.dp))
-
-                Row(Modifier.fillMaxWidth()) {
-                    PhotoSlot(
-                        modifier = Modifier.weight(1f),
-                        uri = photos.getOrNull(0), dashedColor = dashedColor, subC = subC,
-                        onTap = { pendingIndex = 0; showPhotoSheet = true },
-                        onRemove = { photos[0] = null },
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    PhotoSlot(
-                        modifier = Modifier.weight(1f),
-                        uri = photos.getOrNull(1), dashedColor = dashedColor, subC = subC,
-                        onTap = { pendingIndex = 1; showPhotoSheet = true },
-                        onRemove = { photos[1] = null },
-                    )
+                Spacer(Modifier.width(10.dp))
+                val hasPhotos = photos.any { it != null }
+                Button(
+                    onClick = ::sharePhotos,
+                    enabled = hasPhotos,
+                    modifier = Modifier.weight(1f).alpha(if (hasPhotos) 1f else 0.35f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = c.blue, contentColor = Color.White,
+                        disabledContainerColor = c.blue, disabledContentColor = Color.White,
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp),
+                ) {
+                    Icon(Icons.Outlined.Photo, null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("사진 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
                 }
-                Spacer(Modifier.height(12.dp))
-                Divider(color = borderC, thickness = 1.dp)
-            }
-        } // 스크롤 Column 닫기
-
-        // 공유 버튼 — 스크롤 밖, 항상 화면 하단에 고정
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-        ) {
-            Button(
-                onClick = ::shareText,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDark) AppColors.BorderDark else Color(0xFFDDDDDD),
-                    contentColor = textC,
-                ),
-                shape = RoundedCornerShape(14.dp),
-                contentPadding = PaddingValues(vertical = 16.dp),
-            ) {
-                Icon(Icons.Outlined.Article, null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("텍스트 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
-            }
-            Spacer(Modifier.width(10.dp))
-            val hasPhotos = photos.any { it != null }
-            Button(
-                onClick = ::sharePhotos,
-                enabled = hasPhotos,
-                modifier = Modifier.weight(1f).alpha(if (hasPhotos) 1f else 0.35f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = blueC, contentColor = Color.White,
-                    disabledContainerColor = blueC, disabledContentColor = Color.White,
-                ),
-                shape = RoundedCornerShape(14.dp),
-                contentPadding = PaddingValues(vertical = 16.dp),
-            ) {
-                Icon(Icons.Outlined.Photo, null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("사진 공유", fontSize = 15.sp, fontWeight = FontWeight.W700)
             }
         }
-        } // 외부 Column 닫기
     }
 
     if (showPhotoSheet) {
@@ -446,7 +394,6 @@ fun ScriptScreen(
                 ActionSheetOption(Icons.Outlined.CameraAlt, "사진 촬영", 0),
                 ActionSheetOption(Icons.Outlined.PhotoLibrary, "갤러리 선택", 1),
             ),
-            isDark = isDark,
             onSelect = { choice ->
                 showPhotoSheet = false
                 if (choice == 0) {

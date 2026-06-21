@@ -32,7 +32,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import app.skons.onsafe.ui.components.DetailAppBar
 import app.skons.onsafe.ui.components.Emergency119Card
+import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
 
@@ -53,16 +55,15 @@ private val steps = listOf(
 fun AccidentScreen(
     navController: NavHostController,
     locationViewModel: LocationViewModel,
-    isDark: Boolean,
     onMenuClick: () -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { locationViewModel.fetch() }
 
     val textC = if (isDark) AppColors.TextDark else AppColors.TextLight
     val subC = if (isDark) AppColors.SubDark else AppColors.SubLight
     val lineC = if (isDark) AppColors.BorderDark else AppColors.BorderLight
-    // 폰트 스케일 제곱으로 shouldScroll 임계값을 높여 큰 폰트에서 클리핑 방지
     val fontScale = LocalDensity.current.fontScale
     val address = if (locState.locationEnabled && locState.status == LocationStatus.Ready) locState.address else null
 
@@ -70,16 +71,10 @@ fun AccidentScreen(
         topBar = {
             DetailAppBar(
                 title = "사고 발생",
-                isDark = isDark,
                 currentRoute = "accident",
                 onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                 onMenuClick = onMenuClick,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("home") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
+                onNavigate = { navController.navigateMain(it) },
             )
         },
         containerColor = if (isDark) AppColors.BgDark else AppColors.BgLight,
@@ -90,7 +85,7 @@ fun AccidentScreen(
                 .padding(inner)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            Emergency119Card(isDark = isDark, address = address)
+            Emergency119Card(address = address)
             Spacer(Modifier.height(10.dp))
 
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {

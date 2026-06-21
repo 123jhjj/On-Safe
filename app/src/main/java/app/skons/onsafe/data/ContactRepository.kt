@@ -30,7 +30,6 @@ object ContactRepository {
             val myInfoJson = json.optJSONObject("myInfo")
             val myInfo = if (myInfoJson != null) MyInfo(
                 name = myInfoJson.optString("name", ""),
-                siteName = myInfoJson.optString("siteName", ""),
                 company = myInfoJson.optString("company", ""),
             ) else MyInfo()
 
@@ -60,7 +59,6 @@ object ContactRepository {
         val json = JSONObject().apply {
             put("myInfo", JSONObject().apply {
                 put("name", data.myInfo.name)
-                put("siteName", data.myInfo.siteName)
                 put("company", data.myInfo.company)
             })
             put("allContacts", JSONArray().apply {

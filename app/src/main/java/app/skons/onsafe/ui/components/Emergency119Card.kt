@@ -33,14 +33,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 import kotlinx.coroutines.delay
 
 @Composable
 fun Emergency119Card(
-    isDark: Boolean,
     address: String?,
     modifier: Modifier = Modifier,
 ) {
+    val isDark = LocalDarkTheme.current
     val ctx = LocalContext.current
     var blinkOn by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { while (true) { delay(500L); blinkOn = !blinkOn } }

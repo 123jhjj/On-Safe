@@ -20,16 +20,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeAppBar(
     company: String,
-    isDark: Boolean,
     currentRoute: String,
     onMenuClick: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     Column {
         TopAppBar(
             expandedHeight = 48.dp,
@@ -72,7 +73,6 @@ fun HomeAppBar(
         )
         CategoryNavBar(
             currentRoute = currentRoute,
-            isDark = isDark,
             onNavigate = onNavigate,
         )
     }
@@ -82,12 +82,12 @@ fun HomeAppBar(
 @Composable
 fun DetailAppBar(
     title: String,
-    isDark: Boolean,
     currentRoute: String,
     onBack: () -> Unit,
     onMenuClick: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     Column {
         TopAppBar(
             expandedHeight = 48.dp,
@@ -126,7 +126,6 @@ fun DetailAppBar(
         )
         CategoryNavBar(
             currentRoute = currentRoute,
-            isDark = isDark,
             onNavigate = onNavigate,
         )
     }

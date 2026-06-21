@@ -69,6 +69,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.skons.onsafe.data.ContactModel
 import app.skons.onsafe.data.MyInfo
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
+import app.skons.onsafe.ui.theme.appThemeColors
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
@@ -76,12 +78,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
-
-private val BadgeBgLight = Color(0xFFFFF8E0)
-private val BadgeBgDark = Color(0xFF2A2A3D)
-private val BadgeTxLight = Color(0xFF7A5C00)
-private val BadgeTxDark = Color(0xFFFFD966)
-
 
 private fun getContactFromUri(context: Context, uri: Uri): Pair<String, String> {
     var name = ""
@@ -119,7 +115,6 @@ private fun getContactFromUri(context: Context, uri: Uri): Pair<String, String> 
 fun AppDrawer(
     contactViewModel: ContactViewModel,
     locationViewModel: LocationViewModel,
-    isDark: Boolean,
     onDismiss: () -> Unit,
 ) {
     BackHandler { onDismiss() }
@@ -128,16 +123,9 @@ fun AppDrawer(
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
 
-    val textC = if (isDark) AppColors.TextDark else AppColors.TextLight
-    val subC = if (isDark) AppColors.SubDark else AppColors.SubLight
-    val hintC = if (isDark) AppColors.HintDark else AppColors.HintLight
-    val borderC = if (isDark) AppColors.BorderDark else AppColors.BorderLight
-    val cardBg = if (isDark) AppColors.CardDark else AppColors.CardLight
-    val bg = if (isDark) AppColors.BgDark else AppColors.CardLight
-    val badgeBg = if (isDark) BadgeBgDark else BadgeBgLight
-    val badgeTx = if (isDark) BadgeTxDark else BadgeTxLight
+    val c = appThemeColors()
+    val isDark = LocalDarkTheme.current
 
-    // Sheet states
     var showMyInfoEdit by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
     var editContact by remember { mutableStateOf<ContactModel?>(null) }
@@ -189,7 +177,6 @@ fun AppDrawer(
         }
     }
 
-    // Reorderable list
     val contacts = appData.contacts
     val lazyListState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
@@ -202,7 +189,6 @@ fun AppDrawer(
     }
 
     Box(Modifier.fillMaxSize()) {
-        // Scrim
         Box(
             Modifier
                 .fillMaxSize()
@@ -213,17 +199,15 @@ fun AppDrawer(
                 ) { onDismiss() },
         )
 
-        // Drawer panel
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(0.88f)
                 .align(Alignment.CenterStart),
-            color = bg,
+            color = c.bg,
             shadowElevation = 10.dp,
         ) {
             Column(Modifier.fillMaxSize()) {
-                // Yellow header
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -244,28 +228,24 @@ fun AppDrawer(
                     }
                 }
 
-                // Scrollable content
                 LazyColumn(
                     state = lazyListState,
                     modifier = Modifier.weight(1f).navigationBarsPadding(),
                 ) {
-                    // Location card
                     item(key = "location") {
-                        // Location section
                         Column(
                             Modifier
                                 .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
-                                .border(1.dp, borderC, RoundedCornerShape(10.dp))
-                                .background(cardBg, RoundedCornerShape(10.dp)),
+                                .border(1.dp, c.border, RoundedCornerShape(10.dp))
+                                .background(c.cardBg, RoundedCornerShape(10.dp)),
                         ) {
-                            // Card header
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(badgeBg, RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp))
+                                    .background(c.badgeBg, RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp))
                                     .drawBehind {
-                                        drawLine(borderC, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+                                        drawLine(c.border, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
                                     }
                                     .padding(start = 12.dp, end = 4.dp, top = 9.dp, bottom = 9.dp),
                             ) {
@@ -277,7 +257,7 @@ fun AppDrawer(
                                 )
                                 Spacer(Modifier.width(9.dp))
                                 Text(
-                                    "위치", fontSize = 12.sp, fontWeight = FontWeight.W800, color = textC,
+                                    "위치", fontSize = 12.sp, fontWeight = FontWeight.W800, color = c.text,
                                     letterSpacing = 0.1.sp,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -285,8 +265,8 @@ fun AppDrawer(
                                     checked = locState.locationEnabled,
                                     onCheckedChange = { locationViewModel.setLocationEnabled(it) },
                                     colors = SwitchDefaults.colors(
-                                        checkedThumbColor = if (isDark) AppColors.BlueDark else AppColors.Blue,
-                                        checkedTrackColor = (if (isDark) AppColors.BlueDark else AppColors.Blue).copy(alpha = 0.3f),
+                                        checkedThumbColor = c.blue,
+                                        checkedTrackColor = c.blue.copy(alpha = 0.3f),
                                     ),
                                     modifier = Modifier
                                         .layout { measurable, constraints ->
@@ -301,10 +281,7 @@ fun AppDrawer(
                                 )
                             }
                             Column(Modifier.padding(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 12.dp)) {
-                                Text(
-                                    "위치 사용 : 119 문자 신고 · 보고 양식",
-                                    fontSize = 11.sp, color = subC,
-                                )
+                                Text("위치 사용 : 119 문자 신고 · 보고 양식", fontSize = 11.sp, color = c.sub)
                                 Spacer(Modifier.height(6.dp))
                                 if (locState.locationEnabled) {
                                     val addrText = when (locState.status) {
@@ -317,13 +294,13 @@ fun AppDrawer(
                                     val addrColor = when (locState.status) {
                                         LocationStatus.Denied, LocationStatus.ServiceDisabled ->
                                             if (isDark) AppColors.RedSoftDark else AppColors.Red
-                                        else -> subC
+                                        else -> c.sub
                                     }
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
                                             Icons.Outlined.Refresh,
                                             contentDescription = null,
-                                            tint = subC,
+                                            tint = c.sub,
                                             modifier = Modifier
                                                 .size(15.dp)
                                                 .rotate(refreshRotation.value)
@@ -346,24 +323,22 @@ fun AppDrawer(
                         }
                     }
 
-                    // My info card
                     item(key = "myInfo") {
                         val myInfo = appData.myInfo
                         val hasInfo = myInfo.company.isNotEmpty() || myInfo.name.isNotEmpty()
                         Column(
                             Modifier
                                 .padding(start = 12.dp, end = 12.dp, bottom = 8.dp)
-                                .border(1.dp, borderC, RoundedCornerShape(10.dp))
-                                .background(cardBg, RoundedCornerShape(10.dp)),
+                                .border(1.dp, c.border, RoundedCornerShape(10.dp))
+                                .background(c.cardBg, RoundedCornerShape(10.dp)),
                         ) {
-                            // Header
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(badgeBg, RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp))
+                                    .background(c.badgeBg, RoundedCornerShape(topStart = 9.dp, topEnd = 9.dp))
                                     .drawBehind {
-                                        drawLine(borderC, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+                                        drawLine(c.border, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
                                     }
                                     .padding(start = 12.dp, end = 4.dp, top = 9.dp, bottom = 9.dp),
                             ) {
@@ -375,7 +350,7 @@ fun AppDrawer(
                                 )
                                 Spacer(Modifier.width(9.dp))
                                 Text(
-                                    "내 정보", fontSize = 12.sp, fontWeight = FontWeight.W800, color = textC,
+                                    "내 정보", fontSize = 12.sp, fontWeight = FontWeight.W800, color = c.text,
                                     letterSpacing = 0.1.sp,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -388,42 +363,41 @@ fun AppDrawer(
                                     if (hasInfo) {
                                         if (myInfo.company.isNotEmpty()) {
                                             Row {
-                                                Text("소속  ", fontSize = 12.sp, color = subC)
-                                                Text(myInfo.company, fontSize = 15.sp, fontWeight = FontWeight.W600, color = textC)
+                                                Text("소속  ", fontSize = 12.sp, color = c.sub)
+                                                Text(myInfo.company, fontSize = 15.sp, fontWeight = FontWeight.W600, color = c.text)
                                             }
                                         }
                                         if (myInfo.name.isNotEmpty()) {
                                             Spacer(Modifier.height(2.dp))
                                             Row {
-                                                Text("이름  ", fontSize = 12.sp, color = subC)
-                                                Text(myInfo.name, fontSize = 15.sp, fontWeight = FontWeight.W600, color = textC)
+                                                Text("이름  ", fontSize = 12.sp, color = c.sub)
+                                                Text(myInfo.name, fontSize = 15.sp, fontWeight = FontWeight.W600, color = c.text)
                                             }
                                         }
                                     } else {
-                                        Text("미입력", fontSize = 15.sp, color = hintC)
+                                        Text("미입력", fontSize = 15.sp, color = c.hint)
                                     }
                                 }
                                 Box(
                                     Modifier
-                                        .background(badgeBg, RoundedCornerShape(7.dp))
+                                        .background(c.badgeBg, RoundedCornerShape(7.dp))
                                         .clickable { showMyInfoEdit = true }
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                 ) {
-                                    Text("수정", fontSize = 12.sp, fontWeight = FontWeight.W700, color = badgeTx)
+                                    Text("수정", fontSize = 12.sp, fontWeight = FontWeight.W700, color = c.badgeTx)
                                 }
                             }
                         }
                     }
 
-                    // Contacts (reorderable)
                     items(contacts, key = { it.id }) { contact ->
                         ReorderableItem(reorderState, contact.id) { isDragging ->
                             val elevation = if (isDragging) 4.dp else 0.dp
                             Surface(
                                 modifier = Modifier
                                     .padding(start = 12.dp, end = 12.dp, bottom = 6.dp)
-                                    .border(1.dp, borderC, RoundedCornerShape(10.dp)),
-                                color = cardBg,
+                                    .border(1.dp, c.border, RoundedCornerShape(10.dp)),
+                                color = c.cardBg,
                                 shape = RoundedCornerShape(10.dp),
                                 shadowElevation = elevation,
                             ) {
@@ -431,7 +405,6 @@ fun AppDrawer(
                                     Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    // Content
                                     Column(
                                         Modifier
                                             .weight(1f)
@@ -449,18 +422,18 @@ fun AppDrawer(
                                     ) {
                                         val hasName = contact.name.isNotEmpty()
                                         val hasPhone = contact.phone.isNotEmpty()
-                                        Text(contact.role, fontSize = 15.sp, color = subC, lineHeight = 20.sp)
+                                        Text(contact.role, fontSize = 15.sp, color = c.sub, lineHeight = 20.sp)
                                         Spacer(Modifier.height(2.dp))
                                         Text(
                                             if (hasName) contact.name else "이름 미입력",
                                             fontSize = 17.sp, fontWeight = FontWeight.W700,
-                                            color = if (hasName) textC else hintC,
+                                            color = if (hasName) c.text else c.hint,
                                         )
                                         Spacer(Modifier.height(3.dp))
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Icon(
                                                 Icons.Outlined.PhoneInTalk, contentDescription = null,
-                                                tint = if (hasPhone) (if (isDark) AppColors.BlueDark else AppColors.Blue) else hintC,
+                                                tint = if (hasPhone) c.blue else c.hint,
                                                 modifier = Modifier.size(with(LocalDensity.current) { 13.sp.toDp() }),
                                             )
                                             Spacer(Modifier.width(4.dp))
@@ -468,11 +441,10 @@ fun AppDrawer(
                                                 if (hasPhone) fmtPhone(contact.phone) else "번호 없음",
                                                 fontSize = 13.sp,
                                                 fontWeight = if (hasPhone) FontWeight.W600 else FontWeight.Normal,
-                                                color = if (hasPhone) (if (isDark) AppColors.BlueDark else AppColors.Blue) else hintC,
+                                                color = if (hasPhone) c.blue else c.hint,
                                             )
                                         }
                                     }
-                                    // Delete (deletable only)
                                     if (contact.deletable) {
                                         Icon(
                                             Icons.Outlined.Delete, contentDescription = "삭제",
@@ -483,25 +455,21 @@ fun AppDrawer(
                                                 .clickable { deleteConfirmContact = contact },
                                         )
                                     }
-                                    // Edit button
                                     Icon(
                                         Icons.Default.Edit, contentDescription = "수정",
-                                        tint = subC,
+                                        tint = c.sub,
                                         modifier = Modifier
                                             .padding(horizontal = 8.dp, vertical = 8.dp)
                                             .size(17.dp)
-                                            .clickable {
-                                                showActionSheetFor = contact
-                                            },
+                                            .clickable { showActionSheetFor = contact },
                                     )
-                                    // Drag handle
                                     Box(
                                         Modifier
                                             .fillMaxHeight()
                                             .width(38.dp)
                                             .drawBehind {
                                                 drawLine(
-                                                    color = borderC,
+                                                    color = c.border,
                                                     start = Offset(0f, 0f),
                                                     end = Offset(0f, size.height),
                                                     strokeWidth = 0.8.dp.toPx(),
@@ -512,7 +480,7 @@ fun AppDrawer(
                                     ) {
                                         Icon(
                                             Icons.Default.DragHandle, contentDescription = null,
-                                            tint = hintC, modifier = Modifier.size(20.dp),
+                                            tint = c.hint, modifier = Modifier.size(20.dp),
                                         )
                                     }
                                 }
@@ -520,21 +488,20 @@ fun AppDrawer(
                         }
                     }
 
-                    // Add contact button
                     item(key = "addBtn") {
                         Box(
                             Modifier
                                 .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 24.dp)
                                 .fillMaxWidth()
-                                .border(1.5.dp, borderC, RoundedCornerShape(10.dp))
+                                .border(1.5.dp, c.border, RoundedCornerShape(10.dp))
                                 .clickable { showAddActionSheet = true }
                                 .padding(vertical = 13.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.Add, contentDescription = null, tint = subC, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Outlined.Add, contentDescription = null, tint = c.sub, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))
-                                Text("연락처 추가", color = subC, fontWeight = FontWeight.W600)
+                                Text("연락처 추가", color = c.sub, fontWeight = FontWeight.W600)
                             }
                         }
                     }
@@ -543,13 +510,11 @@ fun AppDrawer(
         }
     }
 
-    // My info edit sheet
     if (showMyInfoEdit) {
-        BottomSheetContainer(isDark = isDark, onDismiss = { showMyInfoEdit = false }) {
+        BottomSheetContainer(onDismiss = { showMyInfoEdit = false }) {
             ContactEditSheetContent(
                 isMyInfo = true,
                 myInfo = appData.myInfo,
-                isDark = isDark,
                 onSave = { fields ->
                     contactViewModel.updateMyInfo(
                         appData.myInfo.copy(name = fields.name, company = fields.company),
@@ -560,14 +525,12 @@ fun AppDrawer(
         }
     }
 
-    // Contact edit sheet (edit existing or add new)
     if (showEditSheet) {
-        BottomSheetContainer(isDark = isDark, onDismiss = { showEditSheet = false }) {
+        BottomSheetContainer(onDismiss = { showEditSheet = false }) {
             ContactEditSheetContent(
                 contact = editContact,
                 initialName = prefillName.takeIf { it.isNotEmpty() },
                 initialPhone = prefillPhone.takeIf { it.isNotEmpty() },
-                isDark = isDark,
                 onSave = { fields ->
                     val target = editContact
                     if (target == null) {
@@ -596,7 +559,6 @@ fun AppDrawer(
         }
     }
 
-    // Delete confirmation sheet
     deleteConfirmContact?.let { contact ->
         BottomActionSheet(
             title = "${contact.role} 삭제",
@@ -604,7 +566,6 @@ fun AppDrawer(
                 ActionSheetOption(Icons.Outlined.Delete, "삭제", 0),
                 ActionSheetOption(Icons.Default.Close, "취소", 1),
             ),
-            isDark = isDark,
             onSelect = { choice ->
                 deleteConfirmContact = null
                 if (choice == 0) contactViewModel.removeContact(contact.id)
@@ -613,7 +574,6 @@ fun AppDrawer(
         )
     }
 
-    // Action sheet for existing contact (직접 입력 / 연락처 가져오기)
     showActionSheetFor?.let { contact ->
         BottomActionSheet(
             title = "${contact.role} 수정",
@@ -621,7 +581,6 @@ fun AppDrawer(
                 ActionSheetOption(Icons.Outlined.Contacts, "연락처 가져오기", 1),
                 ActionSheetOption(Icons.Outlined.EditNote, "직접 입력", 0),
             ),
-            isDark = isDark,
             onSelect = { choice ->
                 showActionSheetFor = null
                 if (choice == 0) openDirectEdit(contact, false)
@@ -631,7 +590,6 @@ fun AppDrawer(
         )
     }
 
-    // Action sheet for add new contact
     if (showAddActionSheet) {
         BottomActionSheet(
             title = "연락처 추가",
@@ -639,7 +597,6 @@ fun AppDrawer(
                 ActionSheetOption(Icons.Outlined.Contacts, "연락처 가져오기", 1),
                 ActionSheetOption(Icons.Outlined.EditNote, "직접 입력", 0),
             ),
-            isDark = isDark,
             onSelect = { choice ->
                 showAddActionSheet = false
                 if (choice == 0) openDirectEdit(null, true)

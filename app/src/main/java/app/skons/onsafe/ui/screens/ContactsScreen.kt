@@ -28,7 +28,9 @@ import androidx.navigation.NavHostController
 import app.skons.onsafe.ui.components.ContactCard
 import app.skons.onsafe.ui.components.DetailAppBar
 import app.skons.onsafe.ui.components.Emergency119Card
+import app.skons.onsafe.ui.navigateMain
 import app.skons.onsafe.ui.theme.AppColors
+import app.skons.onsafe.ui.theme.LocalDarkTheme
 import app.skons.onsafe.viewmodel.ContactViewModel
 import app.skons.onsafe.viewmodel.LocationStatus
 import app.skons.onsafe.viewmodel.LocationViewModel
@@ -39,9 +41,9 @@ fun ContactsScreen(
     navController: NavHostController,
     contactViewModel: ContactViewModel,
     locationViewModel: LocationViewModel,
-    isDark: Boolean,
     onMenuClick: () -> Unit,
 ) {
+    val isDark = LocalDarkTheme.current
     val ctx = LocalContext.current
     val appData by contactViewModel.data.collectAsStateWithLifecycle()
     val locState by locationViewModel.state.collectAsStateWithLifecycle()
@@ -57,16 +59,10 @@ fun ContactsScreen(
         topBar = {
             DetailAppBar(
                 title = "긴급 연락처",
-                isDark = isDark,
                 currentRoute = "contacts",
                 onBack = { if (navController.previousBackStackEntry != null) navController.popBackStack() },
                 onMenuClick = onMenuClick,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo("home") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
+                onNavigate = { navController.navigateMain(it) },
             )
         },
         containerColor = if (isDark) AppColors.BgDark else AppColors.BgLight,
@@ -77,7 +73,7 @@ fun ContactsScreen(
                 .padding(inner)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
-            Emergency119Card(isDark = isDark, address = address)
+            Emergency119Card(address = address)
             Spacer(Modifier.height(8.dp))
 
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
@@ -85,7 +81,6 @@ fun ContactsScreen(
                 val spacing = 7.dp
                 val density = LocalDensity.current
 
-                // Measured natural card height in pixels (0 until first measurement)
                 var naturalCardHeightPx by remember { mutableIntStateOf(0) }
 
                 val estCardH = if (naturalCardHeightPx > 0)
@@ -103,9 +98,7 @@ fun ContactsScreen(
                         if (i > 0) Spacer(Modifier.height(spacing))
                         ContactCard(
                             contact = c,
-                            isDark = isDark,
                             modifier = if (shouldScroll) {
-                                // Measure natural card height from the first card (only once)
                                 if (i == 0 && naturalCardHeightPx == 0)
                                     Modifier.fillMaxWidth().onSizeChanged { naturalCardHeightPx = it.height }
                                 else
