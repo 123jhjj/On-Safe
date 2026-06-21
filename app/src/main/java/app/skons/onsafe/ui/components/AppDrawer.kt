@@ -180,7 +180,7 @@ fun AppDrawer(
     val contacts = appData.contacts
     val lazyListState = rememberLazyListState()
     val reorderState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        val headerCount = 2
+        val headerCount = 3
         val fIdx = from.index - headerCount
         val tIdx = to.index - headerCount
         if (fIdx >= 0 && tIdx >= 0 && fIdx < contacts.size && tIdx < contacts.size) {
