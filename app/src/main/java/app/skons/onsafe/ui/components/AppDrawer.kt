@@ -230,7 +230,7 @@ fun AppDrawer(
 
                 LazyColumn(
                     state = lazyListState,
-                    modifier = Modifier.weight(1f).navigationBarsPadding(),
+                    modifier = Modifier.weight(1f),
                 ) {
                     item(key = "location") {
                         Column(
@@ -390,6 +390,16 @@ fun AppDrawer(
                         }
                     }
 
+                    item(key = "dividerTop") {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(top = 6.dp, bottom = 14.dp, start = 12.dp, end = 12.dp)
+                                .height(1.dp)
+                                .background(c.border),
+                        )
+                    }
+
                     items(contacts, key = { it.id }) { contact ->
                         ReorderableItem(reorderState, contact.id) { isDragging ->
                             val elevation = if (isDragging) 4.dp else 0.dp
@@ -488,21 +498,28 @@ fun AppDrawer(
                         }
                     }
 
-                    item(key = "addBtn") {
-                        Box(
-                            Modifier
-                                .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 24.dp)
-                                .fillMaxWidth()
-                                .border(1.5.dp, c.border, RoundedCornerShape(10.dp))
-                                .clickable { showAddActionSheet = true }
-                                .padding(vertical = 13.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Outlined.Add, contentDescription = null, tint = c.sub, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text("연락처 추가", color = c.sub, fontWeight = FontWeight.W600)
-                            }
+                    item(key = "bottomPad") { Spacer(Modifier.height(8.dp)) }
+                }
+
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(c.bg)
+                        .navigationBarsPadding()
+                        .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 12.dp),
+                ) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .border(1.5.dp, c.border, RoundedCornerShape(10.dp))
+                            .clickable { showAddActionSheet = true }
+                            .padding(vertical = 13.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Add, contentDescription = null, tint = c.sub, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("연락처 추가", color = c.sub, fontWeight = FontWeight.W600)
                         }
                     }
                 }
