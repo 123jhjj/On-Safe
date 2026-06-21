@@ -127,16 +127,16 @@ fun ReportFlowScreen(
                 ) {
                     Text("보고 체계", fontSize = 13.sp, fontWeight = FontWeight.W700, color = subC, letterSpacing = 0.3.sp)
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.weight(0.15f))
                     FlowNode(
                         label = "최초 목격자",
                         nodeBg = if (isDark) Color(0xFF2A0A0A) else Color(0xFFFCEBEB),
                         nodeText = if (isDark) Color(0xFFFF8080) else Color(0xFFA32D2D),
                         modifier = Modifier.fillMaxWidth(0.78f).align(Alignment.CenterHorizontally),
                     )
-                    Spacer(Modifier.weight(0.15f))
+                    Spacer(Modifier.weight(0.08f))
                     ArrowDown(arrowC)
-                    Spacer(Modifier.weight(0.15f))
+                    Spacer(Modifier.weight(0.08f))
                     FlowNode(
                         label = "SKO 관리감독자",
                         nodeBg = if (isDark) Color(0xFF2A1800) else Color(0xFFFAEEDA),
@@ -149,9 +149,9 @@ fun ReportFlowScreen(
                             else android.widget.Toast.makeText(ctx, "연락처 등록 필요", android.widget.Toast.LENGTH_SHORT).show()
                         },
                     )
-                    Spacer(Modifier.weight(0.15f))
+                    Spacer(Modifier.weight(0.08f))
                     BranchArrow(arrowC)
-                    Spacer(Modifier.weight(0.15f))
+                    Spacer(Modifier.weight(0.08f))
                     Row(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -181,12 +181,12 @@ fun ReportFlowScreen(
                             },
                         )
                     }
-                    Spacer(Modifier.weight(0.15f))
+                    Spacer(Modifier.weight(0.08f))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Box(Modifier.weight(1f)) { ArrowDown(arrowC) }
                         Box(Modifier.weight(1f)) { ArrowDown(arrowC) }
                     }
-                    Spacer(Modifier.weight(0.15f))
+                    Spacer(Modifier.weight(0.08f))
                     Row(
                         Modifier.fillMaxWidth().height(IntrinsicSize.Min),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -238,15 +238,15 @@ private fun FlowNode(
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, fontSize = 16.sp, fontWeight = FontWeight.W700, color = nodeText, textAlign = TextAlign.Center)
+            Text(label, fontSize = 17.sp, fontWeight = FontWeight.W700, color = nodeText, textAlign = TextAlign.Center)
             if (hasName) {
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (hasPhone) {
-                        Icon(Icons.Outlined.PhoneInTalk, null, Modifier.size(with(LocalDensity.current) { 13.sp.toDp() }), tint = nodeText)
+                        Icon(Icons.Outlined.PhoneInTalk, null, Modifier.size(with(LocalDensity.current) { 15.sp.toDp() }), tint = nodeText)
                         Spacer(Modifier.width(4.dp))
                     }
-                    Text(name!!, fontSize = 13.sp, fontWeight = FontWeight.W500, color = nodeText.copy(alpha = 0.9f), textAlign = TextAlign.Center)
+                    Text(name!!, fontSize = 15.sp, fontWeight = FontWeight.W500, color = nodeText.copy(alpha = 0.9f), textAlign = TextAlign.Center)
                 }
             }
         }
@@ -275,15 +275,15 @@ private fun FlowNodeHalf(
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, fontSize = 15.sp, fontWeight = FontWeight.W700, color = nodeText, textAlign = TextAlign.Center)
+            Text(label, fontSize = 17.sp, fontWeight = FontWeight.W700, color = nodeText, textAlign = TextAlign.Center)
             if (hasName) {
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (hasPhone) {
-                        Icon(Icons.Outlined.PhoneInTalk, null, Modifier.size(with(LocalDensity.current) { 12.sp.toDp() }), tint = nodeText)
+                        Icon(Icons.Outlined.PhoneInTalk, null, Modifier.size(with(LocalDensity.current) { 15.sp.toDp() }), tint = nodeText)
                         Spacer(Modifier.width(4.dp))
                     }
-                    Text(name!!, fontSize = 13.sp, fontWeight = FontWeight.W500, color = nodeText.copy(alpha = 0.9f), textAlign = TextAlign.Center)
+                    Text(name!!, fontSize = 15.sp, fontWeight = FontWeight.W500, color = nodeText.copy(alpha = 0.9f), textAlign = TextAlign.Center)
                 }
             }
         }
