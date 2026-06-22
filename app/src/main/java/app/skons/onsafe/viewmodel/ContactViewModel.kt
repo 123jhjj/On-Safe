@@ -3,6 +3,7 @@ package app.skons.onsafe.viewmodel
 import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.skons.onsafe.data.AppData
@@ -18,6 +19,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ContactViewModel(application: Application) : AndroidViewModel(application) {
+
+    companion object {
+        private const val TAG = "ContactViewModel"
+    }
 
     private val _data = MutableStateFlow(AppData())
     val data: StateFlow<AppData> = _data.asStateFlow()
@@ -59,7 +64,11 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
                 }
                 ctx.sendBroadcast(intent)
             }
-        } catch (e: RuntimeException) { /* ignore */ }
+        } catch (e: SecurityException) {
+            Log.e(TAG, "refreshWidgets failed", e)
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "refreshWidgets failed", e)
+        }
     }
 
     fun updateMyInfo(info: MyInfo) {

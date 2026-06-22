@@ -82,7 +82,9 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
                     var waited = 0
                     while (!done && waited < 2000) { delay(50); waited += 50 }
                     loc
-                } catch (e: RuntimeException) { null }
+                } catch (e: SecurityException) { null }
+                catch (e: IllegalStateException) { null }
+                catch (e: RuntimeException) { null }
             }
 
             if (lastKnown != null && lastKnown.accuracy <= 50f) {
@@ -133,6 +135,8 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
             }
         } catch (e: SecurityException) {
             _state.value = _state.value.copy(status = LocationStatus.Denied, fetching = false)
+        } catch (e: IllegalStateException) {
+            _state.value = _state.value.copy(status = LocationStatus.Failed, fetching = false)
         } catch (e: RuntimeException) {
             _state.value = _state.value.copy(status = LocationStatus.Failed, fetching = false)
         }

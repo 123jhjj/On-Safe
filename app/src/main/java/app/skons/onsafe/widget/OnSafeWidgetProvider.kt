@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
+import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -291,6 +292,10 @@ abstract class OnSafeWidgetBase : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, OnSafeWidgetLogic.LAYOUT_ID)
             OnSafeWidgetLogic.populateViews(context, views, contact, appWidgetId, widthDp, heightDp)
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        } catch (e: Resources.NotFoundException) {
+            Log.e("OnSafeWidget", "refresh failed for $appWidgetId", e)
+        } catch (e: IllegalArgumentException) {
+            Log.e("OnSafeWidget", "refresh failed for $appWidgetId", e)
         } catch (e: RuntimeException) {
             Log.e("OnSafeWidget", "refresh failed for $appWidgetId", e)
         }

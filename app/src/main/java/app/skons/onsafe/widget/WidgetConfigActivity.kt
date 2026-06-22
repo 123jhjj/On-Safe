@@ -201,6 +201,14 @@ class WidgetConfigActivity : Activity() {
             OnSafeWidgetLogic.refreshWidget(this, AppWidgetManager.getInstance(this), appWidgetId)
             setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId))
             finish()
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "saveAndFinish failed", e)
+            setResult(RESULT_CANCELED)
+            finish()
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "saveAndFinish failed", e)
+            setResult(RESULT_CANCELED)
+            finish()
         } catch (e: RuntimeException) {
             Log.e(TAG, "saveAndFinish failed", e)
             setResult(RESULT_CANCELED)
