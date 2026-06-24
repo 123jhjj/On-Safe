@@ -17,17 +17,16 @@ import android.view.View
 import android.widget.RemoteViews
 import app.skons.onsafe.MainActivity
 import app.skons.onsafe.R
+import app.skons.onsafe.data.KEY_DATA
+import app.skons.onsafe.data.OnSafePreferences
 import org.json.JSONException
 import org.json.JSONObject
 
 data class WidgetContact(val id: String, val role: String, val name: String, val phone: String)
 
 object OnSafeWidgetLogic {
-    const val WIDGET_PREFS = "onsafe_widget_prefs"
     const val EMERGENCY_ID = "__emergency_119__"
     private const val TAG = "OnSafeWidget"
-    private const val APP_PREFS = "onsafe_prefs"
-    private const val APP_KEY = "onsafe-data"
     val LAYOUT_ID = R.layout.widget_contact
     private const val COLOR_RED = "#E24B4A"
     private const val COLOR_ICON = "#185FA5"
@@ -49,8 +48,8 @@ object OnSafeWidgetLogic {
 
     fun readContacts(context: Context): List<WidgetContact> {
         return try {
-            val prefs = context.getSharedPreferences(APP_PREFS, Context.MODE_PRIVATE)
-            val raw = prefs.getString(APP_KEY, null) ?: return emptyList()
+            val prefs = OnSafePreferences.appPrefs(context)
+            val raw = prefs.getString(KEY_DATA, null) ?: return emptyList()
             val json = JSONObject(raw)
             val list = mutableListOf<WidgetContact>()
             val arr = json.optJSONArray("allContacts")
@@ -74,9 +73,7 @@ object OnSafeWidgetLogic {
 
     fun buildSelectableContacts(context: Context): List<WidgetContact> {
         val stored = readContacts(context)
-        val result = mutableListOf(EMERGENCY_CONTACT)
-        stored.filter { it.id != EMERGENCY_ID }.forEach { result.add(it) }
-        return result
+        return listOf(EMERGENCY_CONTACT) + stored.filter { it.id != EMERGENCY_ID }
     }
 
     fun transparencyPercentToAlpha(percent: Int): Int =
@@ -86,13 +83,12 @@ object OnSafeWidgetLogic {
         (100 - (alpha.coerceIn(0, 255) * 100 / 255)).coerceIn(0, 100)
 
     fun saveContactId(context: Context, widgetId: Int, contactId: String) {
-        context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
-            .edit().putString("sel_$widgetId", contactId).apply()
+        OnSafePreferences.appPrefs(context)
+            .edit().putString("widget_sel_$widgetId", contactId).apply()
     }
 
     fun getSavedContactId(context: Context, widgetId: Int): String? =
-        context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
-            .getString("sel_$widgetId", null)
+        OnSafePreferences.appPrefs(context).getString("widget_sel_$widgetId", null)
 
     fun getSelectedContact(context: Context, widgetId: Int, all: List<WidgetContact>): WidgetContact {
         val savedId = getSavedContactId(context, widgetId)
@@ -107,12 +103,11 @@ object OnSafeWidgetLogic {
     }
 
     fun getAlpha(context: Context, widgetId: Int): Int =
-        context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
-            .getInt("alpha_$widgetId", 220)
+        OnSafePreferences.appPrefs(context).getInt("widget_alpha_$widgetId", 220)
 
     fun saveAlpha(context: Context, widgetId: Int, alpha: Int) {
-        context.getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
-            .edit().putInt("alpha_$widgetId", alpha.coerceIn(0, 255)).apply()
+        OnSafePreferences.appPrefs(context)
+            .edit().putInt("widget_alpha_$widgetId", alpha.coerceIn(0, 255)).apply()
     }
 
     fun widgetWidthDp(context: Context, appWidgetManager: AppWidgetManager, widgetId: Int): Int {
@@ -278,8 +273,8 @@ abstract class OnSafeWidgetBase : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        val edit = context.getSharedPreferences(OnSafeWidgetLogic.WIDGET_PREFS, Context.MODE_PRIVATE).edit()
-        appWidgetIds.forEach { id -> edit.remove("sel_$id"); edit.remove("alpha_$id") }
+        val edit = OnSafePreferences.appPrefs(context).edit()
+        appWidgetIds.forEach { id -> edit.remove("widget_sel_$id"); edit.remove("widget_alpha_$id") }
         edit.apply()
     }
 
@@ -296,7 +291,7 @@ abstract class OnSafeWidgetBase : AppWidgetProvider() {
             Log.e("OnSafeWidget", "refresh failed for $appWidgetId", e)
         } catch (e: IllegalArgumentException) {
             Log.e("OnSafeWidget", "refresh failed for $appWidgetId", e)
-        } catch (e: RuntimeException) {
+        } catch (e: IllegalStateException) {
             Log.e("OnSafeWidget", "refresh failed for $appWidgetId", e)
         }
     }

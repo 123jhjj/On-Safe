@@ -1,10 +1,8 @@
 package app.skons.onsafe.ui.screens
 
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
-import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
@@ -84,6 +82,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.skons.onsafe.ui.components.PrivatePhotoStorage
 import app.skons.onsafe.ui.components.ActionSheetOption
 import app.skons.onsafe.ui.components.BottomActionSheet
 import app.skons.onsafe.ui.components.DetailAppBar
@@ -127,12 +126,27 @@ fun ScriptScreen(
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK && pendingIndex >= 0) {
             photos[pendingIndex] = pendingCameraUri
+        } else {
+            PrivatePhotoStorage.delete(ctx, pendingCameraUri)
         }
+        pendingCameraUri = null
         pendingIndex = -1
     }
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null && pendingIndex >= 0) photos[pendingIndex] = uri
+        if (uri != null && pendingIndex >= 0) {
+            PrivatePhotoStorage.delete(ctx, photos[pendingIndex])
+            photos[pendingIndex] = PrivatePhotoStorage.copyToPrivate(ctx, uri)
+        }
         pendingIndex = -1
+    }
+
+    fun clearPhoto(index: Int) {
+        PrivatePhotoStorage.delete(ctx, photos[index])
+        photos[index] = null
+    }
+
+    fun clearAllPhotos() {
+        photos.indices.forEach { clearPhoto(it) }
     }
 
     LaunchedEffect(appData.myInfo.company, appData.myInfo.name) {
@@ -235,7 +249,7 @@ fun ScriptScreen(
                                 .background(chipBg, RoundedCornerShape(8.dp))
                                 .clickable {
                                     scriptViewModel.reset(appData.myInfo.company, appData.myInfo.name)
-                                    photos[0] = null; photos[1] = null
+                                    clearAllPhotos()
                                     locationViewModel.fetch()
                                 }
                                 .padding(horizontal = 10.dp, vertical = 5.dp),
@@ -333,14 +347,14 @@ fun ScriptScreen(
                             modifier = Modifier.weight(1f),
                             uri = photos.getOrNull(0), dashedColor = dashedColor, subC = c.sub,
                             onTap = { pendingIndex = 0; showPhotoSheet = true },
-                            onRemove = { photos[0] = null },
+                            onRemove = { clearPhoto(0) },
                         )
                         Spacer(Modifier.width(10.dp))
                         PhotoSlot(
                             modifier = Modifier.weight(1f),
                             uri = photos.getOrNull(1), dashedColor = dashedColor, subC = c.sub,
                             onTap = { pendingIndex = 1; showPhotoSheet = true },
-                            onRemove = { photos[1] = null },
+                            onRemove = { clearPhoto(1) },
                         )
                     }
                     Spacer(Modifier.height(12.dp))
@@ -399,18 +413,17 @@ fun ScriptScreen(
                 showPhotoSheet = false
                 if (choice == 0) {
                     try {
-                        val cv = ContentValues().apply {
-                            put(MediaStore.Images.Media.DISPLAY_NAME, "onsafe_${System.currentTimeMillis()}.jpg")
-                            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                        }
-                        val mediaUri = ctx.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv)
+                        val mediaUri = PrivatePhotoStorage.createCaptureUri(ctx)
                         if (mediaUri != null) {
+                            PrivatePhotoStorage.delete(ctx, photos.getOrNull(pendingIndex))
                             pendingCameraUri = mediaUri
-                            val camIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                                putExtra(MediaStore.EXTRA_OUTPUT, mediaUri)
+                            val camIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                                putExtra(android.provider.MediaStore.EXTRA_OUTPUT, mediaUri)
+                                addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                             }
                             cameraLauncher.launch(camIntent)
                         } else {
+                            android.widget.Toast.makeText(ctx, "사진 저장 공간을 준비할 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
                             pendingIndex = -1
                         }
                     } catch (_: android.content.ActivityNotFoundException) {

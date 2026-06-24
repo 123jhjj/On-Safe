@@ -6,8 +6,12 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-val keyPropertiesFile = rootProject.file("key.properties")
-check(keyPropertiesFile.exists()) { "key.properties not found. Create it from key.properties.template." }
+val signingDir = System.getenv("ONSAFE_SIGNING_DIR")?.let { file(it) }
+    ?: rootProject.file("../keystore/On-Safe")
+val keyPropertiesFile = signingDir.resolve("key.properties")
+check(keyPropertiesFile.exists()) {
+    "key.properties not found at ${keyPropertiesFile.absolutePath}. Set ONSAFE_SIGNING_DIR if using a custom location."
+}
 val keyProperties = Properties().apply {
     load(keyPropertiesFile.inputStream())
 }
@@ -18,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "app.skons.onsafe"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -41,7 +45,7 @@ android {
         create("release") {
             keyAlias = keyProperties.getProperty("keyAlias")
             keyPassword = keyProperties.getProperty("keyPassword")
-            storeFile = keyProperties.getProperty("storeFile")?.let { file(it) }
+            storeFile = keyProperties.getProperty("storeFile")?.let { signingDir.resolve(it) }
             storePassword = keyProperties.getProperty("storePassword")
         }
     }
@@ -79,5 +83,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.material)
     implementation(libs.reorderable)
+    implementation(libs.androidx.security.crypto)
     debugImplementation(libs.androidx.ui.tooling)
 }

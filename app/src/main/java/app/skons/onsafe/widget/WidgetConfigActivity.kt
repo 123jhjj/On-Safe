@@ -209,10 +209,6 @@ class WidgetConfigActivity : Activity() {
             Log.e(TAG, "saveAndFinish failed", e)
             setResult(RESULT_CANCELED)
             finish()
-        } catch (e: RuntimeException) {
-            Log.e(TAG, "saveAndFinish failed", e)
-            setResult(RESULT_CANCELED)
-            finish()
         }
     }
 }

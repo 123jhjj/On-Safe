@@ -33,6 +33,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import app.skons.onsafe.R
+import app.skons.onsafe.data.OnSafePreferences
 import app.skons.onsafe.ui.theme.AppColors
 import app.skons.onsafe.ui.theme.LocalDarkTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -61,7 +62,7 @@ fun SplashScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
         navController.context.let { ctx ->
-            val prefs = ctx.getSharedPreferences("onsafe_prefs", Context.MODE_PRIVATE)
+            val prefs = OnSafePreferences.appPrefs(ctx)
             val setupComplete = prefs.getBoolean("onsafe-first-setup-complete", false)
             if (!setupComplete) {
                 showPermDialog = true

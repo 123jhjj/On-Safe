@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "OnSafe"
+rootProject.name = "On-Safe"
 include(":app")

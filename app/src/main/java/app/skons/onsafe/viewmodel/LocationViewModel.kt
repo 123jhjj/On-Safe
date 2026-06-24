@@ -20,12 +20,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import app.skons.onsafe.data.OnSafePreferences
 import java.io.IOException
 import java.util.Locale
 
 enum class LocationStatus { Loading, Denied, ServiceDisabled, Failed, Ready }
 
-private const val PREFS = "onsafe_prefs"
 private const val KEY_LOCATION_ENABLED = "onsafe-location-enabled"
 
 data class LocationState(
@@ -45,14 +45,14 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
     private var locationCallback: LocationCallback? = null
 
     init {
-        val prefs = application.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val prefs = OnSafePreferences.appPrefs(application)
         val enabled = prefs.getBoolean(KEY_LOCATION_ENABLED, true)
         _state.value = _state.value.copy(locationEnabled = enabled)
     }
 
     fun setLocationEnabled(enabled: Boolean) {
         val ctx = getApplication<Application>()
-        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        OnSafePreferences.appPrefs(ctx)
             .edit().putBoolean(KEY_LOCATION_ENABLED, enabled).apply()
         _state.value = _state.value.copy(locationEnabled = enabled)
         if (enabled) fetch() else stopFetch()
@@ -84,7 +84,6 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
                     loc
                 } catch (e: SecurityException) { null }
                 catch (e: IllegalStateException) { null }
-                catch (e: RuntimeException) { null }
             }
 
             if (lastKnown != null && lastKnown.accuracy <= 50f) {
@@ -137,8 +136,6 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
             _state.value = _state.value.copy(status = LocationStatus.Denied, fetching = false)
         } catch (e: IllegalStateException) {
             _state.value = _state.value.copy(status = LocationStatus.Failed, fetching = false)
-        } catch (e: RuntimeException) {
-            _state.value = _state.value.copy(status = LocationStatus.Failed, fetching = false)
         }
     }
 
@@ -161,7 +158,10 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
                 val addresses = Geocoder(ctx, Locale.forLanguageTag("ko-KR"))
                     .getFromLocation(lat, lng, 3)
                 if (!addresses.isNullOrEmpty()) {
-                    cleanAddress(addresses[0].getAddressLine(0) ?: "")
+                    cleanAddress(
+                        addresses.maxByOrNull { it.getAddressLine(0)?.length ?: 0 }
+                            ?.getAddressLine(0) ?: ""
+                    )
                 } else ""
             } catch (e: IOException) { "" }
         }

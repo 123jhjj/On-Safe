@@ -1,12 +1,15 @@
 package app.skons.onsafe.data
 
 import android.content.Context
+import android.util.Log
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
 const val PREFS_NAME = "onsafe_prefs"
 const val KEY_DATA = "onsafe-data"
+
+private const val TAG = "ContactRepository"
 
 private val defaultContacts = listOf(
     ContactModel(id = "site-manager",       role = "SKO 관리감독자",    deletable = false),
@@ -24,7 +27,7 @@ object ContactRepository {
 
     fun load(context: Context): AppData {
         return try {
-            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val prefs = OnSafePreferences.appPrefs(context)
             val raw = prefs.getString(KEY_DATA, null) ?: return AppData()
             val json = JSONObject(raw)
             val myInfoJson = json.optJSONObject("myInfo")
@@ -51,6 +54,7 @@ object ContactRepository {
             }
             AppData(myInfo = myInfo, contacts = contacts)
         } catch (e: JSONException) {
+            Log.w(TAG, "Failed to parse stored contact data", e)
             AppData()
         }
     }
@@ -73,7 +77,7 @@ object ContactRepository {
                 }
             })
         }
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        OnSafePreferences.appPrefs(context)
             .edit().putString(KEY_DATA, json.toString()).apply()
     }
 }
