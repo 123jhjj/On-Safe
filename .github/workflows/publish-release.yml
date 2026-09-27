@@ -15,9 +15,9 @@ jobs:
       GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
-      - name: Delete previous releases (1.0.3, v1.0)
+      - name: Delete previous release (1.0.4)
         run: |
-          for tag in 1.0.3 v1.0; do
+          for tag in 1.0.4; do
             gh release delete "$tag" --yes --cleanup-tag || true
           done
       - name: Create release
@@ -27,4 +27,4 @@ jobs:
           # 공유 링크 releases/latest/download/On-Safe.apk 와 이름을 맞춤
           cp "$APK" On-Safe.apk
           gh release create "$VERSION" On-Safe.apk --title "On-Safe $VERSION" --target main --latest \
-            --notes "보고 양식: 마지막 작성 / 새로 작성 버튼 추가, 새로 작성 되돌리기 지원"
+            --notes "알림·팝업 디자인 통일"
