@@ -1,0 +1,30 @@
+name: Publish release
+
+on:
+  push:
+    branches: [release-upload]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete previous releases (1.0.3, v1.0)
+        run: |
+          for tag in 1.0.3 v1.0; do
+            gh release delete "$tag" --yes --cleanup-tag || true
+          done
+      - name: Create release
+        run: |
+          APK=$(ls On-Safe-*.apk)
+          VERSION=${APK#On-Safe-}; VERSION=${VERSION%.apk}
+          # 공유 링크 releases/latest/download/On-Safe.apk 와 이름을 맞춤
+          cp "$APK" On-Safe.apk
+          gh release create "$VERSION" On-Safe.apk --title "On-Safe $VERSION" --target main --latest \
+            --notes "보고 양식: 마지막 작성 / 새로 작성 버튼 추가, 새로 작성 되돌리기 지원"
